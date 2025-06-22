@@ -20,7 +20,15 @@
     <input type="password" id="password" placeholder="Password" />
     <button id="signup">Sign Up</button>
     <button id="login">Log In</button>
+    <button id="view-feed">View Public Feed</button>
     <p id="login-msg"></p>
+  </div>
+
+  <!-- Public Feed Screen -->
+  <div id="feed-screen" class="card hidden">
+    <h2>Public Feed</h2>
+    <ul id="feed-entries"></ul>
+    <button id="back-from-feed">Back</button>
   </div>
 
   <!-- Journal Screen -->
@@ -47,7 +55,7 @@
   </div>
 
   <script>
-    // Your Firebase config (same as before)
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyD3cdFU4K-LiPtkbVcQMmNp1701dvOEFW8",
       authDomain: "vision-journal-proto.firebaseapp.com",
@@ -61,40 +69,35 @@
     const db   = firebase.firestore();
 
     // UI elements
-    const loginScreen   = document.getElementById('login-screen');
-    const journalScreen = document.getElementById('journal-screen');
-    const loginMsg      = document.getElementById('login-msg');
-    const emailInput    = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const signupBtn     = document.getElementById('signup');
-    const loginBtn      = document.getElementById('login');
-    const logoutBtn     = document.getElementById('logout');
+    const loginScreen    = document.getElementById('login-screen');
+    const feedScreen     = document.getElementById('feed-screen');
+    const journalScreen  = document.getElementById('journal-screen');
+    const loginMsg       = document.getElementById('login-msg');
+    const emailInput     = document.getElementById('email');
+    const passwordInput  = document.getElementById('password');
+    const signupBtn      = document.getElementById('signup');
+    const loginBtn       = document.getElementById('login');
+    const viewFeedBtn    = document.getElementById('view-feed');
+    const backFromFeedBtn= document.getElementById('back-from-feed');
+    const logoutBtn      = document.getElementById('logout');
 
-    // 1️⃣ Sign Up
+    // Sign Up
     signupBtn.onclick = () => {
       const email = emailInput.value;
       const pw    = passwordInput.value;
       auth.createUserWithEmailAndPassword(email, pw)
-        .then(() => console.log('User created'))
-        .catch(err => {
-          console.error(err);
-          loginMsg.textContent = err.message;
-        });
+        .catch(err => loginMsg.textContent = err.message);
     };
 
-    // 2️⃣ Log In
+    // Log In
     loginBtn.onclick = () => {
       const email = emailInput.value;
       const pw    = passwordInput.value;
       auth.signInWithEmailAndPassword(email, pw)
-        .then(() => console.log('Logged in'))
-        .catch(err => {
-          console.error(err);
-          loginMsg.textContent = err.message;
-        });
+        .catch(err => loginMsg.textContent = err.message);
     };
 
-    // 3️⃣ Watch auth state
+    // Auth state listener
     auth.onAuthStateChanged(user => {
       if (user) {
         loginScreen.classList.add('hidden');
@@ -103,10 +106,11 @@
       } else {
         loginScreen.classList.remove('hidden');
         journalScreen.classList.add('hidden');
+        feedScreen.classList.add('hidden');
       }
     });
 
-    // 4️⃣ Save new entry
+    // Save new entry
     document.getElementById('save-entry').onclick = () => {
       const type     = document.getElementById('type').value;
       const text     = document.getElementById('text').value;
@@ -130,13 +134,10 @@
           document.getElementById('entry-msg').textContent = 'Saved!';
           loadEntries();
         })
-        .catch(err => {
-          console.error(err);
-          document.getElementById('entry-msg').textContent = 'Save failed.';
-        });
+        .catch(err => document.getElementById('entry-msg').textContent = 'Save failed.');
     };
 
-    // 5️⃣ Load this user’s entries
+    // Load this user’s entries
     function loadEntries() {
       const list = document.getElementById('entries');
       list.innerHTML = '';
@@ -151,11 +152,42 @@
             li.textContent = `${doc.data().type}: ${doc.data().text}`;
             list.append(li);
           });
-        })
-        .catch(console.error);
+        });
     }
 
-    // 6️⃣ Logout
+    // Public Feed button
+    viewFeedBtn.onclick = () => {
+      loginScreen.classList.add('hidden');
+      journalScreen.classList.add('hidden');
+      feedScreen.classList.remove('hidden');
+      loadPublicFeed();
+    };
+
+    // Back from feed
+    backFromFeedBtn.onclick = () => {
+      feedScreen.classList.add('hidden');
+      loginScreen.classList.remove('hidden');
+    };
+
+    // Load public entries
+    function loadPublicFeed() {
+      const list = document.getElementById('feed-entries');
+      list.innerHTML = '';
+      db.collectionGroup('entries')
+        .where('isPublic','==',true)
+        .orderBy('createdAt','desc')
+        .get()
+        .then(snap => {
+          snap.forEach(doc => {
+            const data = doc.data();
+            const li = document.createElement('li');
+            li.textContent = `${data.type}: ${data.text}`;
+            list.append(li);
+          });
+        });
+    }
+
+    // Logout
     logoutBtn.onclick = () => auth.signOut();
   </script>
 </body>
