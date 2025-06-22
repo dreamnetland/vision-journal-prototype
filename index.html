@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Vision Journal</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Firebase (compat SDK for simplicity) -->
+  <!-- Firebase (compat SDK) -->
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore-compat.js"></script>
@@ -13,11 +13,13 @@
 <body>
   <header><h1>Vision Journal</h1></header>
 
-  <!-- Login Form -->
+  <!-- Login / Sign-Up Form -->
   <div id="login-screen" class="card">
-    <h2>Login</h2>
+    <h2>Sign Up or Log In</h2>
     <input type="email" id="email" placeholder="you@example.com" />
-    <button id="send-link">Send Magic Link</button>
+    <input type="password" id="password" placeholder="Password" />
+    <button id="signup">Sign Up</button>
+    <button id="login">Log In</button>
     <p id="login-msg"></p>
   </div>
 
@@ -45,7 +47,7 @@
   </div>
 
   <script>
-    // --- Your Firebase config here ---
+    // Your Firebase config (same as before)
     const firebaseConfig = {
       apiKey: "AIzaSyD3cdFU4K-LiPtkbVcQMmNp1701dvOEFW8",
       authDomain: "vision-journal-proto.firebaseapp.com",
@@ -56,69 +58,60 @@
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
+    const db   = firebase.firestore();
 
-    const loginScreen = document.getElementById('login-screen');
+    // UI elements
+    const loginScreen   = document.getElementById('login-screen');
     const journalScreen = document.getElementById('journal-screen');
-    const loginMsg = document.getElementById('login-msg');
-    const emailInput = document.getElementById('email');
-    const sendLinkBtn = document.getElementById('send-link');
+    const loginMsg      = document.getElementById('login-msg');
+    const emailInput    = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const signupBtn     = document.getElementById('signup');
+    const loginBtn      = document.getElementById('login');
+    const logoutBtn     = document.getElementById('logout');
 
-    // On page load, complete sign‐in if arrived via email link
-    window.addEventListener('load', () => {
-      const url = window.location.href;
-      if (auth.isSignInWithEmailLink(url)) {
-        const storedEmail = window.localStorage.getItem('emailForSignIn');
-        auth.signInWithEmailLink(storedEmail, url)
-          .then(() => initJournal())
-          .catch(err => {
-            console.error(err);
-            loginMsg.textContent = 'Error completing sign-in.';
-          });
-      }
-    });
-
-    // Send the magic link
-    sendLinkBtn.onclick = () => {
+    // 1️⃣ Sign Up
+    signupBtn.onclick = () => {
       const email = emailInput.value;
-      const actionCodeSettings = {
-        url: window.location.origin + '/',   // return here after click
-        handleCodeInApp: true
-      };
-      auth.sendSignInLinkToEmail(email, actionCodeSettings)
-        .then(() => {
-          window.localStorage.setItem('emailForSignIn', email);
-          loginMsg.textContent = 'Magic link sent — check your email.';
-        })
+      const pw    = passwordInput.value;
+      auth.createUserWithEmailAndPassword(email, pw)
+        .then(() => console.log('User created'))
         .catch(err => {
           console.error(err);
-          loginMsg.textContent = 'Error sending link.';
+          loginMsg.textContent = err.message;
         });
     };
 
-    // Initialize journal view
-    function initJournal() {
-      loginScreen.classList.add('hidden');
-      journalScreen.classList.remove('hidden');
-      loadEntries();
-    }
+    // 2️⃣ Log In
+    loginBtn.onclick = () => {
+      const email = emailInput.value;
+      const pw    = passwordInput.value;
+      auth.signInWithEmailAndPassword(email, pw)
+        .then(() => console.log('Logged in'))
+        .catch(err => {
+          console.error(err);
+          loginMsg.textContent = err.message;
+        });
+    };
 
-    // Toggle screens based on auth state
+    // 3️⃣ Watch auth state
     auth.onAuthStateChanged(user => {
       if (user) {
-        initJournal();
+        loginScreen.classList.add('hidden');
+        journalScreen.classList.remove('hidden');
+        loadEntries();
       } else {
         loginScreen.classList.remove('hidden');
         journalScreen.classList.add('hidden');
       }
     });
 
-    // Save new entry
+    // 4️⃣ Save new entry
     document.getElementById('save-entry').onclick = () => {
-      const type = document.getElementById('type').value;
-      const text = document.getElementById('text').value;
-      const tags = document.getElementById('tags').value
-        .split(',').map(s => s.trim()).filter(Boolean);
+      const type     = document.getElementById('type').value;
+      const text     = document.getElementById('text').value;
+      const tags     = document.getElementById('tags').value
+                        .split(',').map(s=>s.trim()).filter(Boolean);
       const isPublic = document.getElementById('isPublic').checked;
 
       db.collection('visions')
@@ -143,14 +136,14 @@
         });
     };
 
-    // Load and list only this user’s entries
+    // 5️⃣ Load this user’s entries
     function loadEntries() {
       const list = document.getElementById('entries');
       list.innerHTML = '';
       db.collection('visions')
         .doc(auth.currentUser.uid)
         .collection('entries')
-        .orderBy('createdAt', 'desc')
+        .orderBy('createdAt','desc')
         .get()
         .then(snap => {
           snap.forEach(doc => {
@@ -162,8 +155,8 @@
         .catch(console.error);
     }
 
-    // Logout
-    document.getElementById('logout').onclick = () => auth.signOut();
+    // 6️⃣ Logout
+    logoutBtn.onclick = () => auth.signOut();
   </script>
 </body>
 </html>
