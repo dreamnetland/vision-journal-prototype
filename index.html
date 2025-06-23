@@ -34,7 +34,7 @@
   <div class="layout">
     <!-- LEFT COLUMN -->
     <main id="main-content">
-      <!-- Login -->
+      <!-- Login Form -->
       <div id="login-screen" class="card">
         <h2>Sign Up or Log In</h2>
         <input type="email" id="email" placeholder="you@example.com" />
@@ -44,7 +44,7 @@
         <p id="login-msg"></p>
       </div>
 
-      <!-- Journal + Insights -->
+      <!-- Journal & Insights -->
       <div id="journal-screen" class="hidden">
         <!-- Insights (Map) -->
         <div id="insights-box" class="card">
@@ -134,11 +134,17 @@
     const entriesList    = document.getElementById('entries');
     const feedEntries    = document.getElementById('feed-entries');
 
-    // ─── Leaflet Map Init ──────────────────────────────────────────────────
-    const map = L.map('map').setView([20, 0], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    // ─── Leaflet Map Init (safe) ─────────────────────────────────────────────
+    let map, leafletReady = false;
+    try {
+      map = L.map('map').setView([20, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      leafletReady = true;
+    } catch (e) {
+      console.warn('Leaflet failed to initialize:', e);
+    }
 
     // ─── Auth Handlers ─────────────────────────────────────────────────────
     signupBtn.onclick = () =>
@@ -162,8 +168,8 @@
         journalScreen.classList.add('hidden');
         logoutBox.classList.add('hidden');
       }
-      loadPublicFeed();     // update sidebar
-      plotPublicMarkers();  // update map
+      loadPublicFeed();
+      if (leafletReady) plotPublicMarkers();
     });
 
     // ─── Location Detection ─────────────────────────────────────────────────
@@ -186,7 +192,7 @@
         });
     };
 
-    // ─── Save Entry (with country/state) ───────────────────────────────────
+    // ─── Save Entry ─────────────────────────────────────────────────────────
     saveBtn.onclick = () => {
       const type     = document.getElementById('type').value;
       const text     = document.getElementById('text').value;
@@ -232,7 +238,7 @@
         });
     }
 
-    // ─── Load Sidebar Feed ─────────────────────────────────────────────────
+    // ─── Load Public Feed ───────────────────────────────────────────────────
     function loadPublicFeed() {
       feedEntries.innerHTML = '';
       let q = db.collectionGroup('entries')
@@ -257,13 +263,13 @@
        .catch(console.error);
     }
 
-    // ─── Plot Public Markers on Map ─────────────────────────────────────────
+    // ─── Plot Markers ───────────────────────────────────────────────────────
     function plotPublicMarkers() {
-      // Clear existing layers (except the tile layer)
+      if (!leafletReady) return;
+      // clear existing
       map.eachLayer(layer => {
         if (layer instanceof L.Marker) map.removeLayer(layer);
       });
-
       db.collectionGroup('entries')
         .where('isPublic','==',true)
         .get()
@@ -274,15 +280,12 @@
             const q = encodeURIComponent(d.location.state + ', ' + d.location.country);
             fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`)
               .then(r => r.json())
-              .then(results => {
-                if (!results.length) return;
-                const { lat, lon } = results[0];
-                L.marker([parseFloat(lat), parseFloat(lon)])
-                 .addTo(map)
-                 .bindPopup(
-                   `<strong>${d.type}</strong>: ${d.text}` +
-                   `<br><em>${d.location.state}, ${d.location.country}</em>`
-                 );
+              .then(res => {
+                if (!res.length) return;
+                const { lat, lon } = res[0];
+                L.marker([+lat, +lon])
+                  .addTo(map)
+                  .bindPopup(`<strong>${d.type}</strong>: ${d.text}<br><em>${d.location.state}, ${d.location.country}</em>`);
               })
               .catch(console.error);
           });
