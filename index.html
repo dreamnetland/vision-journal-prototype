@@ -8,7 +8,7 @@
   <!-- Your styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Leaflet CSS & JS (no integrity attributes) -->
+  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
@@ -25,7 +25,6 @@
   <div class="layout">
     <!-- LEFT COLUMN -->
     <main id="main-content">
-      <!-- Login Form -->
       <div id="login-screen" class="card">
         <h2>Sign Up or Log In</h2>
         <input type="email" id="email" placeholder="you@example.com" />
@@ -35,9 +34,7 @@
         <p id="login-msg"></p>
       </div>
 
-      <!-- Journal & Insights -->
       <div id="journal-screen" class="hidden">
-        <!-- Insights (Map) -->
         <div id="insights-box" class="card">
           <h2>Insights</h2>
           <div id="map"></div>
@@ -46,7 +43,6 @@
           </p>
         </div>
 
-        <!-- New Entry -->
         <div id="new-entry-box" class="card">
           <h2>New Entry</h2>
           <select id="type">
@@ -72,7 +68,6 @@
           <p id="entry-msg"></p>
         </div>
 
-        <!-- My Journal -->
         <div id="journal-box" class="card">
           <h2>My Journal</h2>
           <ul id="entries"></ul>
@@ -125,73 +120,66 @@
     const entriesList    = document.getElementById('entries');
     const feedEntries    = document.getElementById('feed-entries');
 
-    // ─── Leaflet Map Init ──────────────────────────────────────────────────
+    // ─── Leaflet Init ───────────────────────────────────────────────────────
     let map, leafletReady = false;
     try {
-      map = L.map('map').setView([20, 0], 2);
+      map = L.map('map').setView([20,0],2);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
       leafletReady = true;
-    } catch (e) {
-      console.warn('Leaflet init failed:', e);
+    } catch(e) {
+      console.warn('Leaflet init failed:',e);
     }
 
     // ─── Auth Handlers ─────────────────────────────────────────────────────
-    signupBtn.onclick = () =>
-      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-          .catch(e => loginMsg.textContent = e.message);
+    signupBtn.onclick = ()=>
+      auth.createUserWithEmailAndPassword(emailInput.value,passwordInput.value)
+        .catch(e=>loginMsg.textContent=e.message);
 
-    loginBtn.onclick = () =>
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-          .catch(e => loginMsg.textContent = e.message);
+    loginBtn.onclick = ()=>
+      auth.signInWithEmailAndPassword(emailInput.value,passwordInput.value)
+        .catch(e=>loginMsg.textContent=e.message);
 
-    logoutBtn.onclick = () => auth.signOut();
+    logoutBtn.onclick = ()=>auth.signOut();
 
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        loginScreen.classList.add('hidden');
+    auth.onAuthStateChanged(user=>{
+      if(user){
+        loginScreen .classList.add('hidden');
         journalScreen.classList.remove('hidden');
-        logoutBox.classList.remove('hidden');
-
-        // tell Leaflet to redraw now that its container is visible
-        if (leafletReady) {
-          setTimeout(() => map.invalidateSize(), 200);
-        }
-
+        logoutBox   .classList.remove('hidden');
+        if(leafletReady) setTimeout(()=>map.invalidateSize(),200);
         loadJournal();
       } else {
-        loginScreen.classList.remove('hidden');
+        loginScreen .classList.remove('hidden');
         journalScreen.classList.add('hidden');
-        logoutBox.classList.add('hidden');
+        logoutBox   .classList.add('hidden');
       }
-
       loadPublicFeed();
-      if (leafletReady) plotPublicMarkers();
+      if(leafletReady) plotPublicMarkers();
     });
 
     // ─── Location Detection ─────────────────────────────────────────────────
-    detectBtn.onclick = () => {
+    detectBtn.onclick = ()=>{
       locationDisp.textContent = 'Detecting…';
       fetch('https://ipapi.co/json/')
-        .then(r => r.json())
-        .then(data => {
-          if (data.country_name && data.region) {
-            locationDisp.textContent = `${data.region}, ${data.country_name}`;
-            countryInput.value = data.country_name;
-            stateInput.value   = data.region;
+        .then(r=>r.json())
+        .then(d=>{
+          if(d.country_name && d.region){
+            locationDisp.textContent = `${d.region}, ${d.country_name}`;
+            countryInput.value = d.country_name;
+            stateInput  .value = d.region;
             manualDiv.classList.add('hidden');
-          } else throw new Error('Incomplete');
+          }else throw {};
         })
-        .catch(err => {
-          console.error(err);
+        .catch(_=>{
           locationDisp.textContent = 'Auto-detect failed. Enter manually:';
           manualDiv.classList.remove('hidden');
         });
     };
 
-    // ─── Save Entry ─────────────────────────────────────────────────────────
-    saveBtn.onclick = () => {
+    // ─── Save Entry w/ Geocode ──────────────────────────────────────────────
+    saveBtn.onclick = ()=>{
       const type     = document.getElementById('type').value;
       const text     = document.getElementById('text').value;
       const tags     = document.getElementById('tags').value
@@ -199,95 +187,106 @@
       const isPublic = document.getElementById('isPublic').checked;
       const country  = countryInput.value.trim();
       const state    = stateInput.value.trim();
-      if (!country || !state) {
-        alert('Please detect or enter country and state.');
-        return;
-      }
+      if(!country||!state){ alert('Enter country & state'); return; }
 
-      db.collection('visions').doc(auth.currentUser.uid)
-        .collection('entries').add({
-          userId: auth.currentUser.uid,
-          type, text, tags, isPublic,
-          location: { country, state },
-          isFulfilled: false,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        })
-        .then(() => {
-          document.getElementById('entry-msg').textContent = 'Saved!';
-          loadJournal();
-        })
-        .catch(() => {
-          document.getElementById('entry-msg').textContent = 'Save failed.';
-        });
+      // build doc data
+      const doc = {
+        userId: auth.currentUser.uid,
+        type,text,tags,isPublic,
+        location:{country,state},
+        isFulfilled:false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      // if public, geocode then save with lat/lon
+      if(isPublic){
+        const q = encodeURIComponent(`${state}, ${country}`);
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`)
+          .then(r=>r.json())
+          .then(res=>{
+            if(res.length){
+              doc.lat = parseFloat(res[0].lat);
+              doc.lon = parseFloat(res[0].lon);
+            }
+          })
+          .catch(()=>{})
+          .finally(()=>{
+            db.collection('visions')
+              .doc(auth.currentUser.uid)
+              .collection('entries')
+              .add(doc)
+              .then(()=>{ document.getElementById('entry-msg').textContent='Saved!'; loadJournal(); })
+              .catch(()=> document.getElementById('entry-msg').textContent='Save failed.');
+          });
+      } else {
+        // private entry, just save
+        db.collection('visions')
+          .doc(auth.currentUser.uid)
+          .collection('entries')
+          .add(doc)
+          .then(()=>{ document.getElementById('entry-msg').textContent='Saved!'; loadJournal(); })
+          .catch(()=> document.getElementById('entry-msg').textContent='Save failed.');
+      }
     };
 
     // ─── Load Personal Journal ──────────────────────────────────────────────
-    function loadJournal() {
+    function loadJournal(){
       entriesList.innerHTML = '';
-      db.collection('visions').doc(auth.currentUser.uid)
-        .collection('entries').orderBy('createdAt','desc').get()
-        .then(snap => {
-          snap.forEach(doc => {
-            const d = doc.data();
+      db.collection('visions')
+        .doc(auth.currentUser.uid)
+        .collection('entries')
+        .orderBy('createdAt','desc')
+        .get()
+        .then(snap=>{
+          snap.forEach(d=>{
+            const data = d.data();
             const li = document.createElement('li');
-            li.textContent = `${d.type}: ${d.text}`;
+            li.textContent = `${data.type}: ${data.text}`;
             entriesList.append(li);
           });
         });
     }
 
     // ─── Load Public Feed ───────────────────────────────────────────────────
-    function loadPublicFeed() {
+    function loadPublicFeed(){
       feedEntries.innerHTML = '';
       let q = db.collectionGroup('entries')
                 .where('isPublic','==',true)
                 .orderBy('createdAt','desc');
-      if (!auth.currentUser) q = q.limit(10);
-      q.get()
-       .then(snap => {
-         snap.forEach(doc => {
-           const d = doc.data();
-           const loc = d.location || {};
-           const locText = loc.state && loc.country
-                         ? ` (${loc.state}, ${loc.country})`
-                         : '';
-           const li = document.createElement('li');
-           li.textContent = `${d.type}: ${d.text}${locText}`;
-           feedEntries.append(li);
-         });
-         if (!feedEntries.children.length)
-           feedEntries.innerHTML = '<p>No public entries.</p>';
-       })
-       .catch(console.error);
+      if(!auth.currentUser) q=q.limit(10);
+      q.get().then(snap=>{
+        snap.forEach(d=>{
+          const data = d.data();
+          const loc = data.location||{};
+          const locText = loc.state && loc.country
+                        ? ` (${loc.state}, ${loc.country})`
+                        : '';
+          const li = document.createElement('li');
+          li.textContent = `${data.type}: ${data.text}${locText}`;
+          feedEntries.append(li);
+        });
+        if(!feedEntries.children.length)
+          feedEntries.innerHTML='<p>No public entries.</p>';
+      });
     }
 
-    // ─── Plot Public Markers ────────────────────────────────────────────────
-    function plotPublicMarkers() {
-      if (!leafletReady) return;
-      map.eachLayer(layer => {
-        if (layer instanceof L.Marker) map.removeLayer(layer);
-      });
+    // ─── Plot Markers from Stored lat/lon ─────────────────────────────────
+    function plotPublicMarkers(){
+      if(!leafletReady) return;
+      map.eachLayer(l=>{ if(l instanceof L.Marker) map.removeLayer(l); });
       db.collectionGroup('entries')
         .where('isPublic','==',true)
         .get()
-        .then(snap => {
-          snap.forEach(doc => {
-            const d = doc.data();
-            if (!d.location?.state || !d.location?.country) return;
-            const q = encodeURIComponent(d.location.state + ', ' + d.location.country);
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`)
-              .then(r => r.json())
-              .then(res => {
-                if (!res.length) return;
-                const { lat, lon } = res[0];
-                L.marker([+lat, +lon])
-                  .addTo(map)
-                  .bindPopup(`<strong>${d.type}</strong>: ${d.text}<br><em>${d.location.state}, ${d.location.country}</em>`);
-              })
-              .catch(console.error);
+        .then(snap=>{
+          snap.forEach(d=>{
+            const data = d.data();
+            if(typeof data.lat==='number' && typeof data.lon==='number'){
+              L.marker([data.lat,data.lon])
+                .addTo(map)
+                .bindPopup(`<strong>${data.type}</strong>: ${data.text}<br><em>${data.location.state}, ${data.location.country}</em>`);
+            }
           });
-        })
-        .catch(console.error);
+        });
     }
   </script>
 </body>
