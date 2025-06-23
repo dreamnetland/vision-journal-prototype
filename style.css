@@ -1,20 +1,41 @@
-/* Basic reset & layout */
-body {
-  margin: 0; padding: 0;
-  font-family: sans-serif;
-  background: #f5f5f5;
+/* Basic reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
+/* Body & fonts */
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+  line-height: 1.4;
+}
+
+/* Top header */
+header.card {
+  background: #222;
+  color: #fff;
+  text-align: center;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+}
+
+/* Layout columns */
 .layout {
   display: flex;
   gap: 1rem;
-  padding: 1rem;
+  padding: 0 1rem 1rem;
 }
 
+/* Main content takes remaining space */
 #main-content {
   flex: 1;
 }
 
+/* Sidebar fixed width */
 #feed-screen {
   flex: 0 0 300px;
   display: flex;
@@ -24,40 +45,48 @@ body {
   overflow-y: auto;
 }
 
-header.card {
-  margin: 1rem;
-  background: #333;
-  color: #fff;
-  text-align: center;
-  padding: 1rem;
-  border-radius: 0.5rem;
-}
-
+/* Card styling */
 .card {
   background: #fff;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   padding: 1rem;
 }
 
-/* Hide elements via .hidden */
-.hidden { display: none; }
-
-/* Form controls */
-input, select, textarea, button {
-  display: block;
-  width: 100%;
-  margin-top: 0.5rem;
+/* Hide elements when .hidden */
+.hidden {
+  display: none;
 }
+
+/* Form elements */
+input[type="email"],
+input[type="password"],
+input[type="text"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+}
+
+/* Buttons */
 button {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 0.25rem;
   background: #0066cc;
   color: #fff;
-  border: none;
-  padding: 0.75rem;
-  border-radius: 0.3rem;
+  font-size: 1rem;
   cursor: pointer;
 }
-button:hover { background: #005bb5; }
+button:hover {
+  background: #005bb5;
+}
 
 /* Lists */
 ul {
@@ -68,13 +97,28 @@ li {
   background: #eef;
   margin: 0.5rem 0;
   padding: 0.5rem;
-  border-radius: 0.3rem;
+  border-radius: 0.25rem;
 }
 
-/* Map styling */
-map {
+/* Map container */
+#map {
   width: 100%;
   height: 300px;
-  border-radius: 0.3rem;
+  border-radius: 0.25rem;
+  margin-top: 0.5rem;
   margin-bottom: 1rem;
+}
+
+/* Specific card tweaks */
+#insights-box {
+  position: relative;
+}
+
+/* Scrollbar styling for sidebar (optional) */
+#feed-screen::-webkit-scrollbar {
+  width: 8px;
+}
+#feed-screen::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
 }
