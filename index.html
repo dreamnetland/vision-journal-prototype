@@ -13,48 +13,53 @@
 <body>
   <header class="card">
     <h1>Vision Journal</h1>
-    <!-- Global Public Feed button -->
-    <button id="view-feed-header">Public Feed</button>
   </header>
 
-  <!-- Login / Sign-Up Form -->
-  <div id="login-screen" class="card">
-    <h2>Sign Up or Log In</h2>
-    <input type="email" id="email" placeholder="you@example.com" />
-    <input type="password" id="password" placeholder="Password" />
-    <button id="signup">Sign Up</button>
-    <button id="login">Log In</button>
-    <p id="login-msg"></p>
-  </div>
+  <div id="layout" class="layout">
+    <!-- Left: Login or Journal -->
+    <main id="main-content" class="card">
+      <!-- Login Screen -->
+      <div id="login-screen">
+        <h2>Sign Up or Log In</h2>
+        <input type="email" id="email" placeholder="you@example.com" />
+        <input type="password" id="password" placeholder="Password" />
+        <button id="signup">Sign Up</button>
+        <button id="login">Log In</button>
+        <p id="login-msg"></p>
+      </div>
 
-  <!-- Public Feed Screen -->
-  <div id="feed-screen" class="card hidden">
-    <h2>Public Feed</h2>
-    <ul id="feed-entries"></ul>
-    <button id="back-from-feed">Back</button>
-  </div>
+      <!-- Journal Screen -->
+      <div id="journal-screen" class="hidden">
+        <button id="logout">Logout</button>
+        <section>
+          <h2>New Entry</h2>
+          <select id="type">
+            <option value="dream">Dream</option>
+            <option value="nightmare">Nightmare</option>
+            <option value="daydream">Daydream</option>
+            <option value="insight">Insight</option>
+          </select>
+          <textarea id="text" placeholder="Describe..."></textarea>
+          <input id="tags" placeholder="tags, comma-separated" />
+          <label>
+            <input type="checkbox" id="isPublic" />
+            Make Public
+          </label>
+          <button id="save-entry">Save</button>
+          <p id="entry-msg"></p>
+        </section>
+        <section>
+          <h2>My Journal</h2>
+          <ul id="entries"></ul>
+        </section>
+      </div>
+    </main>
 
-  <!-- Journal Screen -->
-  <div id="journal-screen" class="card hidden">
-    <button id="logout">Logout</button>
-    <section>
-      <h2>New Entry</h2>
-      <select id="type">
-        <option value="dream">Dream</option>
-        <option value="nightmare">Nightmare</option>
-        <option value="daydream">Daydream</option>
-        <option value="insight">Insight</option>
-      </select>
-      <textarea id="text" placeholder="Describe..."></textarea>
-      <input id="tags" placeholder="tags, comma-separated" />
-      <label><input type="checkbox" id="isPublic" /> Make Public</label>
-      <button id="save-entry">Save</button>
-      <p id="entry-msg"></p>
-    </section>
-    <section>
-      <h2>My Journal</h2>
-      <ul id="entries"></ul>
-    </section>
+    <!-- Right: Public Feed -->
+    <aside id="feed-screen" class="card">
+      <h2>Public Feed</h2>
+      <ul id="feed-entries"></ul>
+    </aside>
   </div>
 
   <script>
@@ -71,115 +76,110 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    // UI references
-    const headerFeedBtn  = document.getElementById('view-feed-header');
-    const loginScreen    = document.getElementById('login-screen');
-    const feedScreen     = document.getElementById('feed-screen');
-    const journalScreen  = document.getElementById('journal-screen');
-    const loginMsg       = document.getElementById('login-msg');
-    const emailInput     = document.getElementById('email');
-    const passwordInput  = document.getElementById('password');
-    const signupBtn      = document.getElementById('signup');
-    const loginBtn       = document.getElementById('login');
-    const backFromFeed   = document.getElementById('back-from-feed');
-    const logoutBtn      = document.getElementById('logout');
+    // Elements
+    const loginScreen   = document.getElementById('login-screen');
+    const journalScreen = document.getElementById('journal-screen');
+    const feedEntries   = document.getElementById('feed-entries');
+    const entriesList   = document.getElementById('entries');
+    const loginMsg      = document.getElementById('login-msg');
+    const emailInput    = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const signupBtn     = document.getElementById('signup');
+    const loginBtn      = document.getElementById('login');
+    const logoutBtn     = document.getElementById('logout');
+    const saveBtn       = document.getElementById('save-entry');
 
-    // Sign up & log in
-    signupBtn.onclick = () =>
+    // Sign up
+    signupBtn.onclick = () => {
       auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
         .catch(e => loginMsg.textContent = e.message);
-
-    loginBtn.onclick = () =>
+    };
+    // Log in
+    loginBtn.onclick = () => {
       auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
         .catch(e => loginMsg.textContent = e.message);
+    };
 
-    // Auth state UI switch
+    // Auth state → toggle login/journal, always show feed
     auth.onAuthStateChanged(user => {
       if (user) {
         loginScreen.classList.add('hidden');
         journalScreen.classList.remove('hidden');
-        feedScreen.classList.add('hidden');
-        loadEntries();
+        loadJournal();
       } else {
         loginScreen.classList.remove('hidden');
         journalScreen.classList.add('hidden');
-        feedScreen.classList.add('hidden');
       }
+      loadPublicFeed();  // refresh feed whenever auth changes
     });
 
+    // Logout
+    logoutBtn.onclick = () => auth.signOut();
+
     // Save new entry
-    document.getElementById('save-entry').onclick = () => {
+    saveBtn.onclick = () => {
       const type     = document.getElementById('type').value;
       const text     = document.getElementById('text').value;
       const tags     = document.getElementById('tags').value
                         .split(',').map(s=>s.trim()).filter(Boolean);
       const isPublic = document.getElementById('isPublic').checked;
 
-      db.collection('visions').doc(auth.currentUser.uid)
-        .collection('entries').add({
+      db.collection('visions')
+        .doc(auth.currentUser.uid)
+        .collection('entries')
+        .add({
           userId: auth.currentUser.uid,
           type, text, tags, isPublic,
           isFulfilled: false,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         })
-        .then(() => { 
+        .then(() => {
           document.getElementById('entry-msg').textContent = 'Saved!';
-          loadEntries();
+          loadJournal();
         })
-        .catch(() => document.getElementById('entry-msg').textContent = 'Save failed.');
+        .catch(() => {
+          document.getElementById('entry-msg').textContent = 'Save failed.';
+        });
     };
 
     // Load personal entries
-    function loadEntries() {
-      const list = document.getElementById('entries');
-      list.innerHTML = '';
-      db.collection('visions').doc(auth.currentUser.uid)
-        .collection('entries').orderBy('createdAt','desc').get()
+    function loadJournal() {
+      entriesList.innerHTML = '';
+      db.collection('visions')
+        .doc(auth.currentUser.uid)
+        .collection('entries')
+        .orderBy('createdAt','desc')
+        .get()
         .then(snap => {
-          snap.forEach(doc => {
+          snap.forEach(d => {
             const li = document.createElement('li');
-            li.textContent = `${doc.data().type}: ${doc.data().text}`;
-            list.append(li);
+            li.textContent = `${d.data().type}: ${d.data().text}`;
+            entriesList.append(li);
           });
         });
     }
 
-    // Load public feed (always limit to 10 for guests, unlimited for logged-in)
+    // Load public feed: latest 10 if guest, else unlimited
     function loadPublicFeed() {
-      const list = document.getElementById('feed-entries');
-      list.innerHTML = '';
+      feedEntries.innerHTML = '';
       let q = db.collectionGroup('entries')
                 .where('isPublic','==',true)
                 .orderBy('createdAt','desc');
       if (!auth.currentUser) q = q.limit(10);
       q.get().then(snap => {
-        snap.forEach(doc => {
-          const data = doc.data();
+        snap.forEach(d => {
+          const e = d.data();
           const li = document.createElement('li');
-          li.textContent = `${data.type}: ${data.text}`;
-          list.append(li);
+          li.textContent = `${e.type}: ${e.text}`;
+          feedEntries.append(li);
         });
-        if (!list.children.length) list.innerHTML = '<p>No public entries.</p>';
+        if (!feedEntries.children.length)
+          feedEntries.innerHTML = '<p>No public entries.</p>';
       });
     }
 
-    // Header “Public Feed”
-    headerFeedBtn.onclick = () => {
-      loginScreen.classList.add('hidden');
-      journalScreen.classList.add('hidden');
-      feedScreen.classList.remove('hidden');
-      loadPublicFeed();
-    };
-
-    // Back button
-    backFromFeed.onclick = () => {
-      feedScreen.classList.add('hidden');
-      if (auth.currentUser) journalScreen.classList.remove('hidden');
-      else loginScreen.classList.remove('hidden');
-    };
-
-    // Logout
-    logoutBtn.onclick = () => auth.signOut();
+    // Initial load of feed
+    loadPublicFeed();
   </script>
 </body>
 </html>
