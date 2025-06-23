@@ -9,7 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore-compat.js"></script>
-  <!-- Chart.js for heatmap placeholder -->
+  <!-- Chart.js placeholder -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -20,7 +20,6 @@
   <div class="layout">
     <!-- LEFT COLUMN -->
     <main id="main-content">
-      <!-- Login Form -->
       <div id="login-screen" class="card">
         <h2>Sign Up or Log In</h2>
         <input type="email" id="email" placeholder="you@example.com" />
@@ -30,9 +29,7 @@
         <p id="login-msg"></p>
       </div>
 
-      <!-- Journal + Insights -->
       <div id="journal-screen" class="hidden">
-        <!-- Insights -->
         <div id="insights-box" class="card">
           <h2>Insights</h2>
           <canvas id="heatmapCanvas" width="300" height="150"></canvas>
@@ -41,7 +38,6 @@
           </p>
         </div>
 
-        <!-- New Entry (with country/state) -->
         <div id="new-entry-box" class="card">
           <h2>New Entry</h2>
           <select id="type">
@@ -52,18 +48,12 @@
           </select>
           <textarea id="text" placeholder="Describe..."></textarea>
           <input id="tags" placeholder="tags, comma-separated" />
-          <label>
-            <input type="checkbox" id="isPublic" />
-            Make Public
-          </label>
+          <label><input type="checkbox" id="isPublic" /> Make Public</label>
 
-          <!-- Auto-detect via IP -->
           <button id="detect-location">Detect My Country/State</button>
           <p id="location-display" style="font-size:.9rem;color:#555;">
             (no location yet)
           </p>
-
-          <!-- Manual fallback fields -->
           <div id="manual-location" class="hidden">
             <input type="text" id="country-input" placeholder="Country (required)" />
             <input type="text" id="state-input"   placeholder="State/Region (required)" />
@@ -73,7 +63,6 @@
           <p id="entry-msg"></p>
         </div>
 
-        <!-- My Journal -->
         <div id="journal-box" class="card">
           <h2>My Journal</h2>
           <ul id="entries"></ul>
@@ -94,7 +83,7 @@
   </div>
 
   <script>
-    // Firebase config
+    // Firebase init
     const firebaseConfig = {
       apiKey: "AIzaSyD3cdFU4K-LiPtkbVcQMmNp1701dvOEFW8",
       authDomain: "vision-journal-proto.firebaseapp.com",
@@ -108,33 +97,34 @@
     const db   = firebase.firestore();
 
     // UI refs
-    const loginScreen   = document.getElementById('login-screen');
-    const journalScreen = document.getElementById('journal-screen');
-    const logoutBox     = document.getElementById('logout-box');
-    const loginMsg      = document.getElementById('login-msg');
-    const emailInput    = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const signupBtn     = document.getElementById('signup');
-    const loginBtn      = document.getElementById('login');
-    const logoutBtn     = document.getElementById('logout');
-    const saveBtn       = document.getElementById('save-entry');
-    const detectBtn     = document.getElementById('detect-location');
-    const locationDisp  = document.getElementById('location-display');
-    const manualDiv     = document.getElementById('manual-location');
-    const countryInput  = document.getElementById('country-input');
-    const stateInput    = document.getElementById('state-input');
-    const entriesList   = document.getElementById('entries');
-    const feedEntries   = document.getElementById('feed-entries');
+    const loginScreen    = document.getElementById('login-screen');
+    const journalScreen  = document.getElementById('journal-screen');
+    const entriesList    = document.getElementById('entries');
+    const feedEntries    = document.getElementById('feed-entries');
+    const logoutBox      = document.getElementById('logout-box');
+    const loginMsg       = document.getElementById('login-msg');
+    const emailInput     = document.getElementById('email');
+    const passwordInput  = document.getElementById('password');
+    const signupBtn      = document.getElementById('signup');
+    const loginBtn       = document.getElementById('login');
+    const logoutBtn      = document.getElementById('logout');
+    const saveBtn        = document.getElementById('save-entry');
+    const detectBtn      = document.getElementById('detect-location');
+    const locationDisp   = document.getElementById('location-display');
+    const manualDiv      = document.getElementById('manual-location');
+    const countryInput   = document.getElementById('country-input');
+    const stateInput     = document.getElementById('state-input');
 
-    // Sign up / Log in
+    // Auth handlers
     signupBtn.onclick = () =>
       auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
           .catch(e => loginMsg.textContent = e.message);
     loginBtn.onclick = () =>
       auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
           .catch(e => loginMsg.textContent = e.message);
+    logoutBtn.onclick = () => auth.signOut();
 
-    // Auth-state listener
+    // On auth change
     auth.onAuthStateChanged(user => {
       if (user) {
         loginScreen.classList.add('hidden');
@@ -149,10 +139,7 @@
       loadPublicFeed();
     });
 
-    // Logout
-    logoutBtn.onclick = () => auth.signOut();
-
-    // Detect via IP lookup
+    // Geolocation via IP fallback to manual
     detectBtn.onclick = () => {
       locationDisp.textContent = 'Detecting…';
       fetch('https://ipapi.co/json/')
@@ -160,22 +147,19 @@
         .then(data => {
           if (data.country_name && data.region) {
             locationDisp.textContent = `${data.city || ''}, ${data.region}, ${data.country_name}`;
-            // store for save
             countryInput.value = data.country_name;
             stateInput.value   = data.region;
             manualDiv.classList.add('hidden');
-          } else {
-            throw new Error('Incomplete data');
-          }
+          } else throw new Error('bad data');
         })
         .catch(err => {
           console.error(err);
-          locationDisp.textContent = 'Auto-detect failed. Please enter manually:';
+          locationDisp.textContent = 'Auto-detect failed. Enter manually:';
           manualDiv.classList.remove('hidden');
         });
     };
 
-    // Save entry with country/state
+    // Save entry with location
     saveBtn.onclick = () => {
       const type     = document.getElementById('type').value;
       const text     = document.getElementById('text').value;
@@ -184,13 +168,10 @@
       const isPublic = document.getElementById('isPublic').checked;
       const country  = countryInput.value.trim();
       const state    = stateInput.value.trim();
-
-      // require country/state if none auto-detected
       if (!country || !state) {
-        alert('Please detect your location or enter country and state.');
+        alert('Please detect or enter country and state.');
         return;
       }
-
       db.collection('visions').doc(auth.currentUser.uid)
         .collection('entries').add({
           userId: auth.currentUser.uid,
@@ -214,15 +195,16 @@
       db.collection('visions').doc(auth.currentUser.uid)
         .collection('entries').orderBy('createdAt','desc').get()
         .then(snap => {
-          snap.forEach(d => {
+          snap.forEach(doc => {
+            const d = doc.data();
             const li = document.createElement('li');
-            li.textContent = `${d.data().type}: ${d.data().text}`;
+            li.textContent = `${d.type}: ${d.text}`;
             entriesList.append(li);
           });
         });
     }
 
-    // Load public feed
+    // Load public feed (limit 10 if guest)
     function loadPublicFeed() {
       feedEntries.innerHTML = '';
       let q = db.collectionGroup('entries')
@@ -230,15 +212,21 @@
                 .orderBy('createdAt','desc');
       if (!auth.currentUser) q = q.limit(10);
       q.get().then(snap => {
-        snap.forEach(d => {
-          const e = d.data();
+        snap.forEach(doc => {
+          const d = doc.data();
+          // safely get location
+          const loc = d.location || {};
+          const locText = loc.country && loc.state
+                        ? ` (${loc.state}, ${loc.country})`
+                        : '';
           const li = document.createElement('li');
-          li.textContent = `${e.type}: ${e.text} (${e.location.country}, ${e.location.state})`;
+          li.textContent = `${d.type}: ${d.text}${locText}`;
           feedEntries.append(li);
         });
         if (!feedEntries.children.length)
           feedEntries.innerHTML = '<p>No public entries.</p>';
-      });
+      })
+      .catch(err => console.error('Public-feed error:', err));
     }
   </script>
 </body>
