@@ -134,7 +134,7 @@
     const entriesList    = document.getElementById('entries');
     const feedEntries    = document.getElementById('feed-entries');
 
-    // ─── Leaflet Map Init (safe) ─────────────────────────────────────────────
+    // ─── Leaflet Map Init ──────────────────────────────────────────────────
     let map, leafletReady = false;
     try {
       map = L.map('map').setView([20, 0], 2);
@@ -143,7 +143,7 @@
       }).addTo(map);
       leafletReady = true;
     } catch (e) {
-      console.warn('Leaflet failed to initialize:', e);
+      console.warn('Leaflet init failed:', e);
     }
 
     // ─── Auth Handlers ─────────────────────────────────────────────────────
@@ -162,12 +162,19 @@
         loginScreen.classList.add('hidden');
         journalScreen.classList.remove('hidden');
         logoutBox.classList.remove('hidden');
+
+        // **NEW**: tell Leaflet to redraw now that its container is visible
+        if (leafletReady) {
+          setTimeout(() => map.invalidateSize(), 200);
+        }
+
         loadJournal();
       } else {
         loginScreen.classList.remove('hidden');
         journalScreen.classList.add('hidden');
         logoutBox.classList.add('hidden');
       }
+
       loadPublicFeed();
       if (leafletReady) plotPublicMarkers();
     });
@@ -263,10 +270,9 @@
        .catch(console.error);
     }
 
-    // ─── Plot Markers ───────────────────────────────────────────────────────
+    // ─── Plot Public Markers ────────────────────────────────────────────────
     function plotPublicMarkers() {
       if (!leafletReady) return;
-      // clear existing
       map.eachLayer(layer => {
         if (layer instanceof L.Marker) map.removeLayer(layer);
       });

@@ -72,7 +72,7 @@ li {
 }
 
 /* Map styling */
-#map {
+map {
   width: 100%;
   height: 300px;
   border-radius: 0.3rem;
