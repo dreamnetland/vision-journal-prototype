@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Vision Journal</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Firebase (compat SDK) -->
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore-compat.js"></script>
@@ -14,7 +15,6 @@
     <h1>Vision Journal</h1>
   </header>
 
-  <!-- TWO-COLUMN LAYOUT -->
   <div id="layout" class="layout">
     <!-- LEFT COLUMN: Login or Journal -->
     <main id="main-content">
@@ -30,7 +30,6 @@
 
       <!-- Journal Screen -->
       <div id="journal-screen" class="card hidden">
-        <button id="logout">Logout</button>
         <section>
           <h2>New Entry</h2>
           <select id="type">
@@ -52,15 +51,23 @@
       </div>
     </main>
 
-    <!-- RIGHT COLUMN: Public Feed -->
-    <aside id="feed-screen" class="card">
-      <h2>Public Feed</h2>
-      <ul id="feed-entries"></ul>
+    <!-- RIGHT SIDEBAR -->
+    <aside id="feed-screen">
+      <!-- Logout Box -->
+      <div id="logout-box" class="card hidden">
+        <button id="logout">Logout</button>
+      </div>
+
+      <!-- Public Feed Box -->
+      <div class="card">
+        <h2>Public Feed</h2>
+        <ul id="feed-entries"></ul>
+      </div>
     </aside>
   </div>
 
   <script>
-    // Firebase init
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyD3cdFU4K-LiPtkbVcQMmNp1701dvOEFW8",
       authDomain: "vision-journal-proto.firebaseapp.com",
@@ -73,11 +80,12 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    // UI elements
+    // Element refs
     const loginScreen   = document.getElementById('login-screen');
     const journalScreen = document.getElementById('journal-screen');
     const entriesList   = document.getElementById('entries');
     const feedEntries   = document.getElementById('feed-entries');
+    const logoutBox     = document.getElementById('logout-box');
     const loginMsg      = document.getElementById('login-msg');
     const emailInput    = document.getElementById('email');
     const passwordInput = document.getElementById('password');
@@ -86,7 +94,7 @@
     const logoutBtn     = document.getElementById('logout');
     const saveBtn       = document.getElementById('save-entry');
 
-    // Sign up / Log in
+    // Sign up & log in
     signupBtn.onclick = () =>
       auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
           .catch(e => loginMsg.textContent = e.message);
@@ -100,18 +108,20 @@
       if (user) {
         loginScreen.classList.add('hidden');
         journalScreen.classList.remove('hidden');
+        logoutBox.classList.remove('hidden');
         loadJournal();
       } else {
         loginScreen.classList.remove('hidden');
         journalScreen.classList.add('hidden');
+        logoutBox.classList.add('hidden');
       }
-      loadPublicFeed();  // always refresh feed
+      loadPublicFeed();
     });
 
     // Logout
     logoutBtn.onclick = () => auth.signOut();
 
-    // Save entry
+    // Save new entry
     saveBtn.onclick = () => {
       const type     = document.getElementById('type').value;
       const text     = document.getElementById('text').value;
@@ -168,7 +178,7 @@
       });
     }
 
-    // Initial feed load
+    // Initial public feed load
     loadPublicFeed();
   </script>
 </body>
