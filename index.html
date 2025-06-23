@@ -16,9 +16,8 @@
   </header>
 
   <div id="layout" class="layout">
-    <!-- LEFT COLUMN: Login or Journal -->
+    <!-- LEFT COLUMN -->
     <main id="main-content">
-      <!-- Login Form -->
       <div id="login-screen" class="card">
         <h2>Sign Up or Log In</h2>
         <input type="email" id="email" placeholder="you@example.com" />
@@ -28,7 +27,6 @@
         <p id="login-msg"></p>
       </div>
 
-      <!-- Journal Screen -->
       <div id="journal-screen" class="card hidden">
         <section>
           <h2>New Entry</h2>
@@ -53,12 +51,9 @@
 
     <!-- RIGHT SIDEBAR -->
     <aside id="feed-screen">
-      <!-- Logout Box -->
       <div id="logout-box" class="card hidden">
         <button id="logout">Logout</button>
       </div>
-
-      <!-- Public Feed Box -->
       <div class="card">
         <h2>Public Feed</h2>
         <ul id="feed-entries"></ul>
@@ -94,7 +89,7 @@
     const logoutBtn     = document.getElementById('logout');
     const saveBtn       = document.getElementById('save-entry');
 
-    // Sign up & log in
+    // Sign up / Log in
     signupBtn.onclick = () =>
       auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
           .catch(e => loginMsg.textContent = e.message);
@@ -103,7 +98,7 @@
       auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
           .catch(e => loginMsg.textContent = e.message);
 
-    // Auth state listener
+    // Auth‐state changes drive all UI & data loads
     auth.onAuthStateChanged(user => {
       if (user) {
         loginScreen.classList.add('hidden');
@@ -115,6 +110,7 @@
         journalScreen.classList.add('hidden');
         logoutBox.classList.add('hidden');
       }
+      // ALWAYS load the feed once we know auth state
       loadPublicFeed();
     });
 
@@ -159,7 +155,7 @@
         });
     }
 
-    // Load public feed
+    // Load public feed (limit 10 if no user)
     function loadPublicFeed() {
       feedEntries.innerHTML = '';
       let q = db.collectionGroup('entries')
@@ -178,8 +174,7 @@
       });
     }
 
-    // Initial public feed load
-    loadPublicFeed();
+    // ── **NO** initial loadPublicFeed() here ──
   </script>
 </body>
 </html>
