@@ -8,18 +8,9 @@
   <!-- Your styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Leaflet CSS & JS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-    integrity="sha256-sA+ePIb5gyXcHPKf/ZG1gasGZe7r3Flr5Qj8h+4k0tk="
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-    integrity="sha256-PlbM/Mz8Tg038rZBSZ8jraKKF4lsYkMXYiejHMclvhU="
-    crossorigin=""
-  ></script>
+  <!-- Leaflet CSS & JS (no integrity attributes) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
@@ -163,7 +154,7 @@
         journalScreen.classList.remove('hidden');
         logoutBox.classList.remove('hidden');
 
-        // **NEW**: tell Leaflet to redraw now that its container is visible
+        // tell Leaflet to redraw now that its container is visible
         if (leafletReady) {
           setTimeout(() => map.invalidateSize(), 200);
         }
