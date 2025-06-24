@@ -24,7 +24,6 @@
   <header class="card"><h1>Vision Journal</h1></header>
 
   <div class="layout">
-    <!-- MAIN -->
     <main id="main-content">
       <div id="login-screen" class="card">
         <h2>Sign Up or Log In</h2>
@@ -61,16 +60,8 @@
             (no location yet)
           </p>
           <div id="manual-location" class="hidden">
-            <input
-              type="text"
-              id="country-input"
-              placeholder="Country (required)"
-            />
-            <input
-              type="text"
-              id="state-input"
-              placeholder="State/Region (required)"
-            />
+            <input type="text" id="country-input" placeholder="Country (required)" />
+            <input type="text" id="state-input"   placeholder="State/Region (required)" />
           </div>
 
           <button id="save-entry">Save</button>
@@ -84,7 +75,6 @@
       </div>
     </main>
 
-    <!-- SIDEBAR -->
     <aside id="feed-screen">
       <div id="logout-box" class="card hidden">
         <button id="logout">Logout</button>
@@ -289,42 +279,36 @@
         }
       });
 
-      try {
-        const snap = await db.collection('publicEntries').get();
-        // build an array of async tasks
-        const tasks = [];
-        snap.forEach(doc=>{
-          tasks.push((async()=>{
-            let d = doc.data();
-            let { lat, lon } = d;
-            // geocode if missing
-            if (lat == null || lon == null) {
-              const q = encodeURIComponent(`${d.location.state}, ${d.location.country}`);
-              const res = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
-              ).then(r=>r.json());
-              if (res[0]) {
-                lat  = parseFloat(res[0].lat);
-                lon  = parseFloat(res[0].lon);
-                await doc.ref.update({ lat, lon });
-              } else {
-                return;
-              }
-            }
-            // plot marker
-            L.marker([lat, lon])
-              .addTo(map)
-              .bindPopup(
-                `<strong>${d.type}</strong>: ${d.text}<br>` +
-                `<em>${d.location.state}, ${d.location.country}</em>`
-              );
-          })());
-        });
-        // wait for all to finish
-        await Promise.all(tasks);
-      } catch(err) {
-        console.error('Plotting markers failed:', err);
-      }
+      // grab every public entry
+      const snap = await db.collection('publicEntries').get();
+      // for each, geocode if needed then plot
+      await Promise.all(snap.docs.map(async docSnap => {
+        let d = docSnap.data();
+        let { lat, lon } = d;
+
+        // if no coords yet, geocode & persist
+        if (lat == null || lon == null) {
+          const q = encodeURIComponent(`${d.location.state}, ${d.location.country}`);
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
+          ).then(r=>r.json());
+          if (res[0]) {
+            lat  = parseFloat(res[0].lat);
+            lon  = parseFloat(res[0].lon);
+            await docSnap.ref.update({ lat, lon });
+          } else {
+            return; // skip if no geo result
+          }
+        }
+
+        // now plot
+        L.marker([lat, lon])
+          .addTo(map)
+          .bindPopup(
+            `<strong>${d.type}</strong>: ${d.text}<br>` +
+            `<em>${d.location.state}, ${d.location.country}</em>`
+          );
+      }));
     }
   </script>
 </body>
