@@ -8,31 +8,53 @@
   <!-- styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Leaflet & MarkerCluster -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+  <!-- Leaflet CSS & JS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+  />
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <!-- MarkerCluster plugin -->
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+  />
 
-  <!-- Firebase -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ── Firebase Init ─────────────────────────
+    const firebaseConfig = {
+      apiKey: "AIzaSyD3cdFU4K-LiPtkbVcQMmNp1701dvOEFW8",
+      authDomain: "vision-journal-proto.firebaseapp.com",
+      projectId: "vision-journal-proto",
+      storageBucket: "vision-journal-proto.appspot.com",
+      messagingSenderId: "1063775796504",
+      appId: "1:1063775796504:web:8effe01d8a1272afc9326d"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </head>
 <body>
-  <header class="card header-flex">
-    <h1>Vision Journal</h1>
-    <div id="header-profile" class="hidden header-profile">
-      <img id="hdr-pic" src="" alt="Pic" />
-      <span id="hdr-name"></span>
-      <button id="edit-profile" class="small-btn">Edit Profile</button>
+  <!-- HEADER with profile thumbnail -->
+  <header class="card" style="position: relative; display: flex; align-items: center; justify-content: center;">
+    <h1 style="flex: 1; text-align: center; margin: 0;">Vision Journal</h1>
+    <div id="header-profile" style="position: absolute; top: 0.5rem; right: 1rem; text-align: right;">
+      <img id="profile-pic" src="" alt="Profile" style="width:32px; height:32px; border-radius:50%; vertical-align:middle;" />
+      <span id="profile-name" style="color:#fff; margin-left:0.5rem; font-size:0.9rem;"></span>
     </div>
   </header>
 
   <div class="layout">
     <main id="main-content">
-      <!-- LOGIN -->
       <div id="login-screen" class="card">
         <h2>Sign Up or Log In</h2>
         <input type="email" id="email" placeholder="you@example.com" />
@@ -42,27 +64,11 @@
         <p id="login-msg"></p>
       </div>
 
-      <!-- PROFILE -->
-      <div id="profile-screen" class="card hidden">
-        <h2>Your Profile</h2>
-        <label>Display Name
-          <input type="text" id="profile-name" placeholder="Jane Doe" />
-        </label>
-        <label>Profile Picture
-          <input type="file" id="profile-pic" accept="image/*" />
-        </label>
-        <label>Hobbies & Interests
-          <textarea id="profile-hobbies" maxlength="500" rows="3"
-            placeholder="Tell us about your hobbies…"></textarea>
-        </label>
-        <button id="save-profile">Save Profile</button>
-        <p id="profile-msg"></p>
-      </div>
-
-      <!-- JOURNAL -->
       <div id="journal-screen" class="hidden">
         <div id="insights-box" class="card">
           <h2>Insights</h2>
+
+          <!-- FILTERS ROW -->
           <div class="filters">
             <select id="filter-type">
               <option value="all">All Types</option>
@@ -73,13 +79,13 @@
             </select>
             <select id="filter-time">
               <option value="all">All Time</option>
-              <option value="hour">Last Hour</option>
-              <option value="day">Last 24 hrs</option>
-              <option value="week">Last 7 days</option>
-              <option value="month">Last 30 days</option>
-              <option value="year">Last Year</option>
+              <option value="1h">Last Hour</option>
+              <option value="24h">24 Hours</option>
+              <option value="7d">7 Days</option>
+              <option value="30d">30 Days</option>
             </select>
           </div>
+
           <div id="map"></div>
           <p style="text-align:center;font-size:.9rem;color:#666;">
             (Zoom & pan to explore hot spots)
@@ -94,15 +100,19 @@
             <option value="daydream">Daydream</option>
             <option value="insight">Insight</option>
           </select>
-          <textarea id="text" placeholder="Describe…"></textarea>
+          <textarea id="text" placeholder="Describe..."></textarea>
           <input id="tags" placeholder="tags, comma-separated" />
           <label><input type="checkbox" id="isPublic" /> Make Public</label>
+
           <button id="detect-location">Detect My Country/State</button>
-          <p id="location-display">(no location yet)</p>
+          <p id="location-display" style="font-size:.9rem;color:#555;">
+            (no location yet)
+          </p>
           <div id="manual-location" class="hidden">
             <input type="text" id="country-input" placeholder="Country (required)" />
-            <input type="text" id="state-input"   placeholder="State/Region (required)" />
+            <input type="text" id="state-input" placeholder="State/Region (required)" />
           </div>
+
           <button id="save-entry">Save</button>
           <p id="entry-msg"></p>
         </div>
@@ -125,298 +135,260 @@
     </aside>
   </div>
 
-  <!-- PROFILE MODAL -->
-  <div id="profile-modal" class="card hidden modal">
-    <button id="close-modal" class="close-btn">×</button>
-    <h2 id="modal-name"></h2>
-    <img id="modal-pic" src="" class="modal-pic"/>
-    <p><strong>Hobbies:</strong> <span id="modal-hobbies"></span></p>
-  </div>
-
   <script>
-    // ── Firebase Init ─────────────────────────
-    const firebaseConfig = { /* your config */ };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db   = firebase.firestore();
+    // ── UI Refs ───────────────────────────────
+    const auth = firebase.auth(), db = firebase.firestore();
+    const loginScreen   = document.getElementById('login-screen');
+    const journalScreen = document.getElementById('journal-screen');
+    const logoutBox     = document.getElementById('logout-box');
+    const loginMsg      = document.getElementById('login-msg');
+    const emailInput    = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const signupBtn     = document.getElementById('signup');
+    const loginBtn      = document.getElementById('login');
+    const logoutBtn     = document.getElementById('logout');
+    const saveBtn       = document.getElementById('save-entry');
+    const detectBtn     = document.getElementById('detect-location');
+    const locationDisp  = document.getElementById('location-display');
+    const manualDiv     = document.getElementById('manual-location');
+    const countryInput  = document.getElementById('country-input');
+    const stateInput    = document.getElementById('state-input');
+    const entriesList   = document.getElementById('entries');
+    const feedEntries   = document.getElementById('feed-entries');
+    const filterType    = document.getElementById('filter-type');
+    const filterTime    = document.getElementById('filter-time');
+    const headerPic     = document.getElementById('profile-pic');
+    const headerName    = document.getElementById('profile-name');
 
-    // ── UI REFS ───────────────────────────────
-    const loginScreen   = document.getElementById('login-screen'),
-          profileScreen = document.getElementById('profile-screen'),
-          journalScreen = document.getElementById('journal-screen'),
-          logoutBox     = document.getElementById('logout-box'),
-          loginMsg      = document.getElementById('login-msg'),
-          emailInput    = document.getElementById('email'),
-          passwordInput = document.getElementById('password'),
-          signupBtn     = document.getElementById('signup'),
-          loginBtn      = document.getElementById('login'),
-          logoutBtn     = document.getElementById('logout'),
-          saveProfile   = document.getElementById('save-profile'),
-          nameInput     = document.getElementById('profile-name'),
-          picInput      = document.getElementById('profile-pic'),
-          hobbiesInput  = document.getElementById('profile-hobbies'),
-          profileMsg    = document.getElementById('profile-msg'),
-          hdrProfile    = document.getElementById('header-profile'),
-          hdrPic        = document.getElementById('hdr-pic'),
-          hdrName       = document.getElementById('hdr-name'),
-          editProfile   = document.getElementById('edit-profile'),
-          filterType    = document.getElementById('filter-type'),
-          filterTime    = document.getElementById('filter-time'),
-          mapDiv        = document.getElementById('map'),
-          detectBtn     = document.getElementById('detect-location'),
-          locationDisp  = document.getElementById('location-display'),
-          manualDiv     = document.getElementById('manual-location'),
-          countryInput  = document.getElementById('country-input'),
-          stateInput    = document.getElementById('state-input'),
-          saveEntryBtn  = document.getElementById('save-entry'),
-          entryMsg      = document.getElementById('entry-msg'),
-          entriesList   = document.getElementById('entries'),
-          feedEntries   = document.getElementById('feed-entries'),
-          modal         = document.getElementById('profile-modal'),
-          modalName     = document.getElementById('modal-name'),
-          modalPic      = document.getElementById('modal-pic'),
-          modalHobbies  = document.getElementById('modal-hobbies'),
-          closeModal    = document.getElementById('close-modal');
-
-    // ── Leaflet + Cluster ────────────────────
-    let map, markers=null, leafletReady=false;
+    // ── Leaflet Map + Clustering ─────────────
+    let map, markers, leafletReady=false;
     try {
       map = L.map('map').setView([20,0],2);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:'&copy; OpenStreetMap'
       }).addTo(map);
       markers = L.markerClusterGroup();
       map.addLayer(markers);
       leafletReady = true;
-    } catch(e){ console.warn(e) }
+    } catch(e){
+      console.warn('Leaflet init failed:', e);
+    }
 
-    // ── AUTH FLOW ────────────────────────────
-    signupBtn.onclick = ()=> auth
-      .createUserWithEmailAndPassword(emailInput.value,passwordInput.value)
-      .catch(e=>loginMsg.textContent=e.message);
-    loginBtn.onclick = ()=> auth
-      .signInWithEmailAndPassword(emailInput.value,passwordInput.value)
-      .catch(e=>loginMsg.textContent=e.message);
-    logoutBtn.onclick = ()=> auth.signOut();
+    // ── Auth Handlers ─────────────────────────
+    signupBtn.onclick = ()=>
+      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
+          .catch(e=>loginMsg.textContent=e.message);
+    loginBtn.onclick = ()=>
+      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
+          .catch(e=>loginMsg.textContent=e.message);
+    logoutBtn.onclick = ()=>auth.signOut();
 
-    auth.onAuthStateChanged(async user => {
-      if(!user) {
-        loginScreen .classList.remove('hidden');
-        profileScreen.classList.add   ('hidden');
-        journalScreen.classList.add   ('hidden');
-        logoutBox   .classList.add    ('hidden');
-        hdrProfile  .classList.add    ('hidden');
-        return;
+    auth.onAuthStateChanged(async user=>{
+      if(user){
+        // show profile pic + name
+        const prof = await db.collection('profiles').doc(user.uid).get();
+        if(prof.exists){
+          const d=prof.data();
+          headerPic.src = d.photoURL||'default-avatar.png';
+          headerName.textContent = d.displayName||'Anonymous';
+        }
+        loginScreen.classList.add('hidden');
+        journalScreen.classList.remove('hidden');
+        logoutBox.classList.remove('hidden');
+        if(leafletReady) setTimeout(()=>map.invalidateSize(),200);
+        loadJournal();
+      } else {
+        loginScreen.classList.remove('hidden');
+        journalScreen.classList.add('hidden');
+        logoutBox.classList.add('hidden');
       }
-      // profile doc?
-      const doc = await db.collection('users').doc(user.uid).get();
-      if(!doc.exists) {
-        loginScreen .classList.add   ('hidden');
-        profileScreen.classList.remove('hidden');
-        return;
-      }
-      const p = doc.data();
-      hdrPic.src  = p.pic || '';
-      hdrName.textContent = p.name;
-      hdrProfile.classList.remove('hidden');
-
-      loginScreen .classList.add   ('hidden');
-      profileScreen.classList.add   ('hidden');
-      journalScreen.classList.remove('hidden');
-      logoutBox   .classList.remove ('hidden');
-      if(leafletReady) setTimeout(()=>map.invalidateSize(),200);
-
-      loadJournal();
       refreshPublic();
     });
 
-    // ── SAVE PROFILE ─────────────────────────
-    saveProfile.onclick = async ()=>{
-      const user = auth.currentUser;
-      const name = nameInput.value.trim();
-      if(!name){ profileMsg.textContent='Name required'; return; }
-      let picData = '';
-      const ref = db.collection('users').doc(user.uid);
-      const existing = await ref.get();
-      if(existing.exists) picData = existing.data().pic||'';
-      if(picInput.files[0]){
-        picData = await new Promise(r=>{
-          const fr = new FileReader();
-          fr.onload = ()=>r(fr.result);
-          fr.readAsDataURL(picInput.files[0]);
-        });
-      }
-      await ref.set({
-        name,
-        pic:picData,
-        hobbies:hobbiesInput.value.trim().split(',').map(s=>s.trim())
-      });
-      profileMsg.textContent='Saved!';
-      hdrPic.src=picData; hdrName.textContent=name;
-      profileScreen.classList.add('hidden');
-      journalScreen.classList.remove('hidden');
-      refreshPublic();
-    };
-
-    editProfile.onclick = async ()=>{
-      const user=auth.currentUser;
-      const doc = await db.collection('users').doc(user.uid).get();
-      const p=doc.data();
-      nameInput.value     = p.name||'';
-      hobbiesInput.value  = (p.hobbies||[]).join(', ');
-      profileScreen.classList.remove('hidden');
-      journalScreen.classList.add   ('hidden');
-    };
-
-    // ── FILTER UI ────────────────────────────
-    filterType.onchange = refreshPublic;
-    filterTime.onchange = refreshPublic;
-
-    // ── LOCATION DETECT ──────────────────────
+    // ── Location Detection ─────────────────────
     detectBtn.onclick = ()=>{
       locationDisp.textContent='Detecting…';
-      fetch('https://ipapi.co/json/')
-        .then(r=>r.json())
+      fetch('https://ipapi.co/json/').then(r=>r.json())
         .then(d=>{
           if(d.country_name&&d.region){
-            countryInput.value=d.country_name;
-            stateInput.value  =d.region;
             locationDisp.textContent=`${d.region}, ${d.country_name}`;
+            countryInput.value=d.country_name;
+            stateInput.value=d.region;
             manualDiv.classList.add('hidden');
           } else throw '';
         })
         .catch(_=>{
-          locationDisp.textContent='Enter manually';
+          locationDisp.textContent='Auto-detect failed; enter manually';
           manualDiv.classList.remove('hidden');
         });
     };
 
-    // ── SAVE ENTRY ───────────────────────────
-    saveEntryBtn.onclick = async ()=>{
-      const user = auth.currentUser;
-      const country=countryInput.value.trim(),
-            state  =stateInput.value.trim();
-      if(!country||!state){ alert('Enter location'); return; }
-      const payload = {
-        userId:user.uid,
-        type:document.getElementById('type').value,
-        text:document.getElementById('text').value,
-        tags:document.getElementById('tags').value
-               .split(',').map(s=>s.trim()).filter(Boolean),
-        isPublic:document.getElementById('isPublic').checked,
-        location:{country,state},
-        createdAt:firebase.firestore.FieldValue.serverTimestamp()
-      };
-      await db.collection('visions').doc(user.uid)
-              .collection('entries').add(payload);
-      if(payload.isPublic){
-        const q=encodeURIComponent(`${state}, ${country}`);
-        const res=await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
-        ).then(r=>r.json());
-        if(res[0]){
-          payload.lat=+res[0].lat;
-          payload.lon=+res[0].lon;
-        }
-        await db.collection('publicEntries').add(payload);
+    // ── Save Entry & Duplicate ─────────────────
+    saveBtn.onclick = async ()=>{
+      const type     = document.getElementById('type').value;
+      const text     = document.getElementById('text').value;
+      const tags     = document.getElementById('tags').value
+                        .split(',').map(s=>s.trim()).filter(Boolean);
+      const isPublic = document.getElementById('isPublic').checked;
+      const country  = countryInput.value.trim();
+      const state    = stateInput.value.trim();
+      if(!country||!state){
+        alert('Please detect or enter country & state.');
+        return;
       }
-      entryMsg.textContent='Saved!';
-      loadJournal(); refreshPublic();
+
+      let payload = {
+        userId: auth.currentUser.uid,
+        type,text,tags,isPublic,
+        location:{country,state},
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      try {
+        await db.collection('visions')
+          .doc(auth.currentUser.uid)
+          .collection('entries')
+          .add(payload);
+
+        if(isPublic){
+          const q=encodeURIComponent(`${state}, ${country}`);
+          const res=await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
+          ).then(r=>r.json());
+          if(res[0]){
+            payload.lat=parseFloat(res[0].lat);
+            payload.lon=parseFloat(res[0].lon);
+          }
+          await db.collection('publicEntries').add(payload);
+        }
+
+        document.getElementById('entry-msg').textContent='Saved!';
+        loadJournal(); refreshPublic();
+      } catch(e){
+        console.error(e);
+        document.getElementById('entry-msg').textContent='Save failed.';
+      }
     };
 
-    // ── LOAD MY JOURNAL ──────────────────────
+    // ── Load My Journal ────────────────────────
     function loadJournal(){
       entriesList.innerHTML='';
-      const uid=auth.currentUser.uid;
-      db.collection('visions').doc(uid)
-        .collection('entries').orderBy('createdAt','desc')
-        .get().then(s=>{
-          s.forEach(doc=>{
-            const d=doc.data();
-            const li=document.createElement('li');
-            li.textContent=`${d.type}: ${d.text}`;
-            entriesList.append(li);
-          });
-        });
+      db.collection('visions')
+        .doc(auth.currentUser.uid)
+        .collection('entries')
+        .orderBy('createdAt','desc')
+        .get()
+        .then(snap=>snap.forEach(doc=>{
+          const d=doc.data();
+          const li=document.createElement('li');
+          li.textContent=`${d.type}: ${d.text}`;
+          entriesList.append(li);
+        }));
     }
 
-    // ── PUBLIC FEED & MAP ────────────────────
-    function computeCutoff(){
-      const now=Date.now();
-      switch(filterTime.value){
-        case 'hour':  return new Date(now-3600*1000);
-        case 'day':   return new Date(now-24*3600*1000);
-        case 'week':  return new Date(now-7*24*3600*1000);
-        case 'month': return new Date(now-30*24*3600*1000);
-        case 'year':  return new Date(now-365*24*3600*1000);
-        default:      return null;
-      }
-    }
-
-    async function loadPublicFeed(){
+    // ── Load & Filter Public Feed ──────────────
+    function loadPublicFeed(){
       feedEntries.innerHTML='';
       let ref=db.collection('publicEntries').orderBy('createdAt','desc');
-      const cutoff=computeCutoff();
-      if(cutoff) ref=ref.where('createdAt','>=',cutoff);
-      if(filterType.value!=='all') ref=ref.where('type','==',filterType.value);
       if(!auth.currentUser) ref=ref.limit(10);
 
-      const snap=await ref.get();
-      if(snap.empty){ feedEntries.innerHTML='<p>No entries</p>'; return; }
-      for(const docSnap of snap.docs){
-        const d=docSnap.data();
-        const userDoc=await db.collection('users').doc(d.userId).get();
-        const up=userDoc.data()||{};
-        const li=document.createElement('li');
-        const btn=document.createElement('button');
-        btn.textContent=up.name||'Unknown';
-        btn.onclick=()=>showModal(up);
-        li.append(btn, document.createTextNode(`: ${d.type}: ${d.text}`));
-        feedEntries.append(li);
+      // apply category filter
+      if(filterType.value!=='all'){
+        ref = ref.where('type','==',filterType.value);
       }
+
+      ref.get()
+         .then(snap=>{
+           if(snap.empty){
+             feedEntries.innerHTML='<p>No public entries.</p>';
+             return;
+           }
+           const now=Date.now();
+           snap.forEach(doc=>{
+             const d=doc.data();
+             // time filter
+             if(filterTime.value!=='all'){
+               const created=d.createdAt?.toDate()?.getTime()||0;
+               const delta = now - created;
+               const cutoff = {
+                 '1h':3600000,
+                 '24h':86400000,
+                 '7d':7*86400000,
+                 '30d':30*86400000
+               }[filterTime.value];
+               if(delta>cutoff) return;
+             }
+             const loc=d.location||{};
+             const locText=loc.state?` (${loc.state}, ${loc.country})`:'';
+             const li=document.createElement('li');
+             li.textContent=`${d.type}: ${d.text}${locText}`;
+             feedEntries.append(li);
+           });
+         })
+         .catch(e=>{
+           console.error(e);
+           feedEntries.innerHTML='<p>Error loading public feed.</p>';
+         });
     }
 
+    // ── Plot & Filter Markers ──────────────────
     async function plotPublicMarkers(){
       if(!leafletReady) return;
       markers.clearLayers();
-      let ref=db.collection('publicEntries');
-      const cutoff=computeCutoff();
-      if(cutoff) ref=ref.where('createdAt','>=',cutoff);
-      if(filterType.value!=='all') ref=ref.where('type','==',filterType.value);
 
-      const snap=await ref.get();
-      for(const docSnap of snap.docs){
+      const snap = await db.collection('publicEntries').get();
+      const now = Date.now();
+
+      for(let docSnap of snap.docs){
         const d=docSnap.data();
-        let {lat,lon}=d;
+
+        // category filter
+        if(filterType.value!=='all' && d.type!==filterType.value) continue;
+
+        // time filter
+        if(filterTime.value!=='all'){
+          const created = d.createdAt?.toDate()?.getTime()||0;
+          const delta = now - created;
+          const cutoff = {
+            '1h':3600000,
+            '24h':86400000,
+            '7d':7*86400000,
+            '30d':30*86400000
+          }[filterTime.value];
+          if(delta>cutoff) continue;
+        }
+
+        let {lat,lon} = d;
         if(lat==null||lon==null){
           const q=encodeURIComponent(`${d.location.state}, ${d.location.country}`);
           const res=await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
           ).then(r=>r.json());
-          if(!res[0]) continue;
-          lat=+res[0].lat; lon=+res[0].lon;
-          await docSnap.ref.update({lat,lon});
+          if(res[0]){
+            lat=parseFloat(res[0].lat);
+            lon=parseFloat(res[0].lon);
+            await docSnap.ref.update({lat,lon});
+          } else continue;
         }
-        const m=L.marker([lat,lon]).bindPopup(
-          `<strong>${d.type}</strong>: ${d.text}`
-        );
+
+        const m = L.marker([lat,lon])
+          .bindPopup(
+            `<strong>${d.type}</strong>: ${d.text}<br>`+
+            `<em>${d.location.state}, ${d.location.country}</em>`
+          );
         markers.addLayer(m);
       }
     }
 
     function refreshPublic(){
       loadPublicFeed();
-      if(leafletReady) plotPublicMarkers();
+      plotPublicMarkers();
     }
 
-    // ── PROFILE MODAL ────────────────────────
-    function showModal(u){
-      modalName.textContent=u.name;
-      modalPic.src=u.pic||'';
-      modalHobbies.textContent=(u.hobbies||[]).join(', ');
-      modal.classList.remove('hidden');
-    }
-    closeModal.onclick = ()=>modal.classList.add('hidden');
+    // re‐run filters when dropdowns change
+    filterType.onchange = refreshPublic;
+    filterTime.onchange = refreshPublic;
+
   </script>
 </body>
 </html>
