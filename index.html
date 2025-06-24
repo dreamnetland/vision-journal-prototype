@@ -279,48 +279,52 @@
     }
 
     // ── Plot Public Markers ────────────────────
-    function plotPublicMarkers(){
+    async function plotPublicMarkers(){
       if (!leafletReady) return;
-      // remove old markers
+
+      // clear old markers
       map.eachLayer(layer=>{
-        if (layer instanceof L.Marker) map.removeLayer(layer);
+        if (layer instanceof L.Marker) {
+          map.removeLayer(layer);
+        }
       });
-      // fetch all publicEntries
-      db.collection('publicEntries').get().then(snap=>{
-        snap.forEach(async doc=>{
-          const d = doc.data();
-          // if coords exist, plot immediately
-          if (d.lat != null && d.lon != null) {
-            L.marker([d.lat, d.lon])
-             .addTo(map)
-             .bindPopup(
-               `<strong>${d.type}</strong>: ${d.text}<br>`+
-               `<em>${d.location.state}, ${d.location.country}</em>`
-             );
-          } else {
-            // geocode missing ones, update, then plot
-            const q = encodeURIComponent(`${d.location.state}, ${d.location.country}`);
-            try {
+
+      try {
+        const snap = await db.collection('publicEntries').get();
+        // build an array of async tasks
+        const tasks = [];
+        snap.forEach(doc=>{
+          tasks.push((async()=>{
+            let d = doc.data();
+            let { lat, lon } = d;
+            // geocode if missing
+            if (lat == null || lon == null) {
+              const q = encodeURIComponent(`${d.location.state}, ${d.location.country}`);
               const res = await fetch(
                 `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
               ).then(r=>r.json());
               if (res[0]) {
-                const lat = parseFloat(res[0].lat),
-                      lon = parseFloat(res[0].lon);
+                lat  = parseFloat(res[0].lat);
+                lon  = parseFloat(res[0].lon);
                 await doc.ref.update({ lat, lon });
-                L.marker([lat, lon])
-                 .addTo(map)
-                 .bindPopup(
-                   `<strong>${d.type}</strong>: ${d.text}<br>`+
-                   `<em>${d.location.state}, ${d.location.country}</em>`
-                 );
+              } else {
+                return;
               }
-            } catch(err){
-              console.error('Geocode fail:', err);
             }
-          }
+            // plot marker
+            L.marker([lat, lon])
+              .addTo(map)
+              .bindPopup(
+                `<strong>${d.type}</strong>: ${d.text}<br>` +
+                `<em>${d.location.state}, ${d.location.country}</em>`
+              );
+          })());
         });
-      }).catch(console.error);
+        // wait for all to finish
+        await Promise.all(tasks);
+      } catch(err) {
+        console.error('Plotting markers failed:', err);
+      }
     }
   </script>
 </body>
