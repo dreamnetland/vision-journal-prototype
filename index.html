@@ -23,10 +23,10 @@
 <body>
   <header class="card header-flex">
     <h1>Vision Journal</h1>
-    <div id="header-profile" class="hidden">
-      <img id="hdr-pic" src="" alt="Pic" class="hdr-pic"/>
-      <span id="hdr-name" class="hdr-name"></span>
-      <button id="edit-profile" class="small-btn">Edit&nbsp;Profile</button>
+    <div id="header-profile" class="hidden header-profile">
+      <img id="hdr-pic" src="" alt="Pic" />
+      <span id="hdr-name"></span>
+      <button id="edit-profile" class="small-btn">Edit Profile</button>
     </div>
   </header>
 
@@ -42,19 +42,16 @@
         <p id="login-msg"></p>
       </div>
 
-      <!-- PROFILE ONBOARDING & EDIT -->
+      <!-- PROFILE -->
       <div id="profile-screen" class="card hidden">
         <h2>Your Profile</h2>
-        <label>
-          Display Name
+        <label>Display Name
           <input type="text" id="profile-name" placeholder="Jane Doe" />
         </label>
-        <label>
-          Profile Picture
+        <label>Profile Picture
           <input type="file" id="profile-pic" accept="image/*" />
         </label>
-        <label>
-          Hobbies & Interests
+        <label>Hobbies & Interests
           <textarea id="profile-hobbies" maxlength="500" rows="3"
             placeholder="Tell us about your hobbies…"></textarea>
         </label>
@@ -62,9 +59,8 @@
         <p id="profile-msg"></p>
       </div>
 
-      <!-- MAIN JOURNAL -->
+      <!-- JOURNAL -->
       <div id="journal-screen" class="hidden">
-        <!-- INSIGHTS WITH FILTERS -->
         <div id="insights-box" class="card">
           <h2>Insights</h2>
           <div class="filters">
@@ -90,7 +86,6 @@
           </p>
         </div>
 
-        <!-- NEW ENTRY -->
         <div id="new-entry-box" class="card">
           <h2>New Entry</h2>
           <select id="type">
@@ -99,7 +94,7 @@
             <option value="daydream">Daydream</option>
             <option value="insight">Insight</option>
           </select>
-          <textarea id="text" placeholder="Describe..."></textarea>
+          <textarea id="text" placeholder="Describe…"></textarea>
           <input id="tags" placeholder="tags, comma-separated" />
           <label><input type="checkbox" id="isPublic" /> Make Public</label>
           <button id="detect-location">Detect My Country/State</button>
@@ -112,7 +107,6 @@
           <p id="entry-msg"></p>
         </div>
 
-        <!-- MY JOURNAL LIST -->
         <div id="journal-box" class="card">
           <h2>My Journal</h2>
           <ul id="entries"></ul>
@@ -120,7 +114,6 @@
       </div>
     </main>
 
-    <!-- SIDEBAR FEED -->
     <aside id="feed-screen">
       <div id="logout-box" class="card hidden">
         <button id="logout">Logout</button>
@@ -142,16 +135,10 @@
 
   <script>
     // ── Firebase Init ─────────────────────────
-    const firebaseConfig = {
-      apiKey: "AIzaSyD3cdFU4K-LiPtkbVcQMmNp1701dvOEFW8",
-      authDomain: "vision-journal-proto.firebaseapp.com",
-      projectId: "vision-journal-proto",
-      storageBucket: "vision-journal-proto.appspot.com",
-      messagingSenderId: "1063775796504",
-      appId: "1:1063775796504:web:8effe01d8a1272afc9326d"
-    };
+    const firebaseConfig = { /* your config */ };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth(), db = firebase.firestore();
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
 
     // ── UI REFS ───────────────────────────────
     const loginScreen   = document.getElementById('login-screen'),
@@ -164,7 +151,7 @@
           signupBtn     = document.getElementById('signup'),
           loginBtn      = document.getElementById('login'),
           logoutBtn     = document.getElementById('logout'),
-          saveProfileBtn= document.getElementById('save-profile'),
+          saveProfile   = document.getElementById('save-profile'),
           nameInput     = document.getElementById('profile-name'),
           picInput      = document.getElementById('profile-pic'),
           hobbiesInput  = document.getElementById('profile-hobbies'),
@@ -191,8 +178,8 @@
           modalHobbies  = document.getElementById('modal-hobbies'),
           closeModal    = document.getElementById('close-modal');
 
-    // ── Leaflet + Clustering ─────────────────
-    let map, markers = null, leafletReady = false;
+    // ── Leaflet + Cluster ────────────────────
+    let map, markers=null, leafletReady=false;
     try {
       map = L.map('map').setView([20,0],2);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
@@ -201,240 +188,216 @@
       markers = L.markerClusterGroup();
       map.addLayer(markers);
       leafletReady = true;
-    } catch(e){ console.warn('Leaflet init failed:',e) }
+    } catch(e){ console.warn(e) }
 
-    // ── AUTH ───────────────────────────────────
-    signupBtn.onclick = ()=> auth.createUserWithEmailAndPassword(
-      emailInput.value, passwordInput.value
-    ).catch(e=>loginMsg.textContent=e.message);
-
-    loginBtn.onclick = ()=> auth.signInWithEmailAndPassword(
-      emailInput.value, passwordInput.value
-    ).catch(e=>loginMsg.textContent=e.message);
-
+    // ── AUTH FLOW ────────────────────────────
+    signupBtn.onclick = ()=> auth
+      .createUserWithEmailAndPassword(emailInput.value,passwordInput.value)
+      .catch(e=>loginMsg.textContent=e.message);
+    loginBtn.onclick = ()=> auth
+      .signInWithEmailAndPassword(emailInput.value,passwordInput.value)
+      .catch(e=>loginMsg.textContent=e.message);
     logoutBtn.onclick = ()=> auth.signOut();
 
     auth.onAuthStateChanged(async user => {
       if(!user) {
-        loginScreen.classList.remove('hidden');
-        profileScreen.classList.add('hidden');
-        journalScreen.classList.add('hidden');
-        logoutBox.classList.add('hidden');
-        hdrProfile.classList.add('hidden');
+        loginScreen .classList.remove('hidden');
+        profileScreen.classList.add   ('hidden');
+        journalScreen.classList.add   ('hidden');
+        logoutBox   .classList.add    ('hidden');
+        hdrProfile  .classList.add    ('hidden');
         return;
       }
-      // check for profile doc
+      // profile doc?
       const doc = await db.collection('users').doc(user.uid).get();
       if(!doc.exists) {
-        loginScreen.classList.add('hidden');
+        loginScreen .classList.add   ('hidden');
         profileScreen.classList.remove('hidden');
-      } else {
-        const p = doc.data();
-        // show header widget
-        hdrPic.src = p.pic||'';
-        hdrName.textContent = p.name;
-        hdrProfile.classList.remove('hidden');
-        // show journal
-        loginScreen.classList.add('hidden');
-        profileScreen.classList.add('hidden');
-        journalScreen.classList.remove('hidden');
-        logoutBox.classList.remove('hidden');
-        if(leafletReady) setTimeout(()=>map.invalidateSize(),200);
-        loadJournal();
-        refreshPublic();
+        return;
       }
+      const p = doc.data();
+      hdrPic.src  = p.pic || '';
+      hdrName.textContent = p.name;
+      hdrProfile.classList.remove('hidden');
+
+      loginScreen .classList.add   ('hidden');
+      profileScreen.classList.add   ('hidden');
+      journalScreen.classList.remove('hidden');
+      logoutBox   .classList.remove ('hidden');
+      if(leafletReady) setTimeout(()=>map.invalidateSize(),200);
+
+      loadJournal();
+      refreshPublic();
     });
 
     // ── SAVE PROFILE ─────────────────────────
-    saveProfileBtn.onclick = async () => {
+    saveProfile.onclick = async ()=>{
       const user = auth.currentUser;
       const name = nameInput.value.trim();
-      if(!name) {
-        profileMsg.textContent = 'Name is required';
-        return;
-      }
-      // fetch existing pic
+      if(!name){ profileMsg.textContent='Name required'; return; }
       let picData = '';
       const ref = db.collection('users').doc(user.uid);
       const existing = await ref.get();
-      if(existing.exists) picData = existing.data().pic || '';
-
-      // new pic?
-      if(picInput.files[0]) {
+      if(existing.exists) picData = existing.data().pic||'';
+      if(picInput.files[0]){
         picData = await new Promise(r=>{
           const fr = new FileReader();
           fr.onload = ()=>r(fr.result);
           fr.readAsDataURL(picInput.files[0]);
         });
       }
-
       await ref.set({
         name,
-        pic: picData,
-        hobbies: hobbiesInput.value.trim().split(',').map(s=>s.trim())
+        pic:picData,
+        hobbies:hobbiesInput.value.trim().split(',').map(s=>s.trim())
       });
-      profileMsg.textContent = 'Saved!';
-      hdrPic.src = picData;
-      hdrName.textContent = name;
-      // go to journal
+      profileMsg.textContent='Saved!';
+      hdrPic.src=picData; hdrName.textContent=name;
       profileScreen.classList.add('hidden');
       journalScreen.classList.remove('hidden');
-      loadJournal();
       refreshPublic();
     };
 
-    editProfile.onclick = () => {
-      // preload fields
-      const user = auth.currentUser;
-      db.collection('users').doc(user.uid).get().then(doc=>{
-        const p = doc.data();
-        nameInput.value = p.name||'';
-        hobbiesInput.value = (p.hobbies||[]).join(', ');
-      });
+    editProfile.onclick = async ()=>{
+      const user=auth.currentUser;
+      const doc = await db.collection('users').doc(user.uid).get();
+      const p=doc.data();
+      nameInput.value     = p.name||'';
+      hobbiesInput.value  = (p.hobbies||[]).join(', ');
       profileScreen.classList.remove('hidden');
-      journalScreen.classList.add('hidden');
+      journalScreen.classList.add   ('hidden');
     };
 
-    // ── FILTER EVENT ─────────────────────────
+    // ── FILTER UI ────────────────────────────
     filterType.onchange = refreshPublic;
     filterTime.onchange = refreshPublic;
 
-    // ── LOCATION DETECTION ───────────────────
-    detectBtn.onclick = () => {
-      locationDisp.textContent = 'Detecting…';
+    // ── LOCATION DETECT ──────────────────────
+    detectBtn.onclick = ()=>{
+      locationDisp.textContent='Detecting…';
       fetch('https://ipapi.co/json/')
         .then(r=>r.json())
-        .then(d => {
-          if(d.country_name && d.region) {
-            locationDisp.textContent = `${d.region}, ${d.country_name}`;
-            countryInput.value = d.country_name;
-            stateInput.value   = d.region;
+        .then(d=>{
+          if(d.country_name&&d.region){
+            countryInput.value=d.country_name;
+            stateInput.value  =d.region;
+            locationDisp.textContent=`${d.region}, ${d.country_name}`;
             manualDiv.classList.add('hidden');
           } else throw '';
         })
-        .catch(_ => {
-          locationDisp.textContent = 'Auto-detect failed; enter manually';
+        .catch(_=>{
+          locationDisp.textContent='Enter manually';
           manualDiv.classList.remove('hidden');
         });
     };
 
     // ── SAVE ENTRY ───────────────────────────
-    saveEntryBtn.onclick = async () => {
-      const user    = auth.currentUser,
-            country = countryInput.value.trim(),
-            state   = stateInput.value.trim();
-      if(!country||!state) {
-        alert('Please detect or enter country & state.');
-        return;
-      }
+    saveEntryBtn.onclick = async ()=>{
+      const user = auth.currentUser;
+      const country=countryInput.value.trim(),
+            state  =stateInput.value.trim();
+      if(!country||!state){ alert('Enter location'); return; }
       const payload = {
-        userId: user.uid,
-        type:   document.getElementById('type').value,
-        text:   document.getElementById('text').value,
-        tags:   document.getElementById('tags').value
-                  .split(',').map(s=>s.trim()).filter(Boolean),
-        isPublic: isPublicInput.checked,
-        location: { country, state },
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        userId:user.uid,
+        type:document.getElementById('type').value,
+        text:document.getElementById('text').value,
+        tags:document.getElementById('tags').value
+               .split(',').map(s=>s.trim()).filter(Boolean),
+        isPublic:document.getElementById('isPublic').checked,
+        location:{country,state},
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
       };
       await db.collection('visions').doc(user.uid)
               .collection('entries').add(payload);
-      if(payload.isPublic) {
-        const q = encodeURIComponent(`${state}, ${country}`);
-        const res = await fetch(
+      if(payload.isPublic){
+        const q=encodeURIComponent(`${state}, ${country}`);
+        const res=await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
         ).then(r=>r.json());
-        if(res[0]) {
-          payload.lat = +res[0].lat;
-          payload.lon = +res[0].lon;
+        if(res[0]){
+          payload.lat=+res[0].lat;
+          payload.lon=+res[0].lon;
         }
         await db.collection('publicEntries').add(payload);
       }
-      entryMsg.textContent = 'Saved!';
-      loadJournal();
-      refreshPublic();
+      entryMsg.textContent='Saved!';
+      loadJournal(); refreshPublic();
     };
 
     // ── LOAD MY JOURNAL ──────────────────────
     function loadJournal(){
-      entriesList.innerHTML = '';
-      const uid = auth.currentUser.uid;
+      entriesList.innerHTML='';
+      const uid=auth.currentUser.uid;
       db.collection('visions').doc(uid)
         .collection('entries').orderBy('createdAt','desc')
-        .get().then(snap=>{
-          snap.forEach(doc=>{
-            const d = doc.data();
-            const li = document.createElement('li');
-            li.textContent = `${d.type}: ${d.text}`;
+        .get().then(s=>{
+          s.forEach(doc=>{
+            const d=doc.data();
+            const li=document.createElement('li');
+            li.textContent=`${d.type}: ${d.text}`;
             entriesList.append(li);
           });
         });
     }
 
-    // ── REFRESH PUBLIC FEED & MAP ────────────
-    function computeCutoff() {
-      const now = Date.now();
-      switch(filterTime.value) {
-        case 'hour':  return new Date(now - 3600*1000);
-        case 'day':   return new Date(now - 24*3600*1000);
-        case 'week':  return new Date(now - 7*24*3600*1000);
-        case 'month': return new Date(now - 30*24*3600*1000);
-        case 'year':  return new Date(now - 365*24*3600*1000);
+    // ── PUBLIC FEED & MAP ────────────────────
+    function computeCutoff(){
+      const now=Date.now();
+      switch(filterTime.value){
+        case 'hour':  return new Date(now-3600*1000);
+        case 'day':   return new Date(now-24*3600*1000);
+        case 'week':  return new Date(now-7*24*3600*1000);
+        case 'month': return new Date(now-30*24*3600*1000);
+        case 'year':  return new Date(now-365*24*3600*1000);
         default:      return null;
       }
     }
 
     async function loadPublicFeed(){
-      feedEntries.innerHTML = '';
-      let ref = db.collection('publicEntries')
-                  .orderBy('createdAt','desc');
-      const cutoff = computeCutoff();
-      if(cutoff) ref = ref.where('createdAt','>=',cutoff);
-      if(filterType.value!=='all') {
-        ref = ref.where('type','==',filterType.value);
-      }
-      if(!auth.currentUser) ref = ref.limit(10);
+      feedEntries.innerHTML='';
+      let ref=db.collection('publicEntries').orderBy('createdAt','desc');
+      const cutoff=computeCutoff();
+      if(cutoff) ref=ref.where('createdAt','>=',cutoff);
+      if(filterType.value!=='all') ref=ref.where('type','==',filterType.value);
+      if(!auth.currentUser) ref=ref.limit(10);
 
-      const snap = await ref.get();
-      snap.forEach(async docSnap=>{
-        const d = docSnap.data();
-        const udoc = await db.collection('users').doc(d.userId).get();
-        const up = udoc.data()||{};
-        const li = document.createElement('li');
-        const btn= document.createElement('button');
-        btn.textContent = up.name||'Unknown';
-        btn.onclick = ()=>showProfileModal(up);
+      const snap=await ref.get();
+      if(snap.empty){ feedEntries.innerHTML='<p>No entries</p>'; return; }
+      for(const docSnap of snap.docs){
+        const d=docSnap.data();
+        const userDoc=await db.collection('users').doc(d.userId).get();
+        const up=userDoc.data()||{};
+        const li=document.createElement('li');
+        const btn=document.createElement('button');
+        btn.textContent=up.name||'Unknown';
+        btn.onclick=()=>showModal(up);
         li.append(btn, document.createTextNode(`: ${d.type}: ${d.text}`));
         feedEntries.append(li);
-      });
-      if(snap.empty) feedEntries.innerHTML='<p>No public entries.</p>';
+      }
     }
 
     async function plotPublicMarkers(){
       if(!leafletReady) return;
       markers.clearLayers();
-      let ref = db.collection('publicEntries');
-      const cutoff = computeCutoff();
-      if(cutoff) ref = ref.where('createdAt','>=',cutoff);
-      if(filterType.value!=='all') {
-        ref = ref.where('type','==',filterType.value);
-      }
-      const snap = await ref.get();
+      let ref=db.collection('publicEntries');
+      const cutoff=computeCutoff();
+      if(cutoff) ref=ref.where('createdAt','>=',cutoff);
+      if(filterType.value!=='all') ref=ref.where('type','==',filterType.value);
+
+      const snap=await ref.get();
       for(const docSnap of snap.docs){
-        const d = docSnap.data();
-        let {lat,lon} = d;
+        const d=docSnap.data();
+        let {lat,lon}=d;
         if(lat==null||lon==null){
-          const q = encodeURIComponent(
-            `${d.location.state}, ${d.location.country}`
-          );
-          const res = await fetch(
+          const q=encodeURIComponent(`${d.location.state}, ${d.location.country}`);
+          const res=await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
           ).then(r=>r.json());
           if(!res[0]) continue;
-          lat = +res[0].lat; lon = +res[0].lon;
+          lat=+res[0].lat; lon=+res[0].lon;
           await docSnap.ref.update({lat,lon});
         }
-        const m = L.marker([lat,lon]).bindPopup(
+        const m=L.marker([lat,lon]).bindPopup(
           `<strong>${d.type}</strong>: ${d.text}`
         );
         markers.addLayer(m);
@@ -447,13 +410,13 @@
     }
 
     // ── PROFILE MODAL ────────────────────────
-    function showProfileModal(up){
-      modalName.textContent    = up.name;
-      modalPic.src             = up.pic||'';
-      modalHobbies.textContent = (up.hobbies||[]).join(', ');
+    function showModal(u){
+      modalName.textContent=u.name;
+      modalPic.src=u.pic||'';
+      modalHobbies.textContent=(u.hobbies||[]).join(', ');
       modal.classList.remove('hidden');
     }
-    closeModal.onclick = ()=> modal.classList.add('hidden');
+    closeModal.onclick = ()=>modal.classList.add('hidden');
   </script>
 </body>
 </html>

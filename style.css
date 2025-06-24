@@ -23,6 +23,30 @@ header.card {
   border-radius: 0.5rem;
 }
 
+/* ─── New: header flex layout ───────────────────────────────── */
+.header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ─── New: profile widget in header ───────────────────────────── */
+.header-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.header-profile img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.header-profile .small-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
 /* Layout columns */
 .layout {
   display: flex;
@@ -43,6 +67,11 @@ header.card {
   gap: 1rem;
   max-height: calc(100vh - 120px);
   overflow-y: auto;
+}
+
+/* ─── New: move logout/profile box above feed ───────────────────── */
+#feed-screen #logout-box {
+  order: -1;
 }
 
 /* Card styling */
@@ -88,6 +117,14 @@ button:hover {
   background: #005bb5;
 }
 
+/* ─── Small-button variant ─────────────────────────────────────── */
+.small-btn {
+  width: auto;
+  padding: 0.25rem 0.5rem;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
 /* Lists */
 ul {
   list-style: none;
@@ -124,7 +161,7 @@ li {
   border-radius: 4px;
 }
 
-/* ─── Filter dropdowns ───────────────────── */
+/* ─── Filter dropdowns ───────────────────────────────────── */
 .filters {
   display: flex;
   gap: 0.5rem;
