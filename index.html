@@ -14,7 +14,7 @@
     href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
   />
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-  <!-- Clustering plugin -->
+  <!-- MarkerCluster plugin -->
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <link
     rel="stylesheet"
@@ -89,30 +89,6 @@
       <div id="logout-box" class="card hidden">
         <button id="logout">Logout</button>
       </div>
-
-      <!-- NEW: Filters -->
-      <div class="card">
-        <h2>Filters</h2>
-        <label>Category
-          <select id="filter-type">
-            <option value="">All</option>
-            <option value="dream">Dream</option>
-            <option value="nightmare">Nightmare</option>
-            <option value="daydream">Daydream</option>
-            <option value="insight">Insight</option>
-          </select>
-        </label>
-        <label>Time Window
-          <select id="filter-time">
-            <option value="all">All time</option>
-            <option value="1h">Last hour</option>
-            <option value="24h">Last 24h</option>
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-          </select>
-        </label>
-      </div>
-
       <div class="card">
         <h2>Public Feed</h2>
         <ul id="feed-entries"></ul>
@@ -151,8 +127,6 @@
     const stateInput    = document.getElementById('state-input');
     const entriesList   = document.getElementById('entries');
     const feedEntries   = document.getElementById('feed-entries');
-    const filterType    = document.getElementById('filter-type');
-    const filterTime    = document.getElementById('filter-time');
 
     // ── Leaflet Map + Clustering ─────────────────────────────
     let map, markers, leafletReady = false;
@@ -189,12 +163,8 @@
         journalScreen.classList.add('hidden');
         logoutBox.classList.add('hidden');
       }
-      refreshPublic();  
+      refreshPublic();
     });
-
-    // reload whenever filters change
-    filterType.onchange = refreshPublic;
-    filterTime.onchange = refreshPublic;
 
     function refreshPublic() {
       loadPublicFeed();
@@ -290,26 +260,8 @@
     // ── Load Public Feed ───────────────────────
     function loadPublicFeed(){
       feedEntries.innerHTML = '';
-      let ref = db.collection('publicEntries').orderBy('createdAt','desc');
-
-      // category filter
-      const cat = filterType.value;
-      if (cat) ref = ref.where('type','==',cat);
-
-      // time filter
-      const now = Date.now();
-      const tw = filterTime.value;
-      if (tw!=='all') {
-        let delta = 0;
-        if (tw==='1h')  delta =  3600e3;
-        if (tw==='24h') delta = 24*3600e3;
-        if (tw==='7d')  delta = 7*24*3600e3;
-        if (tw==='30d') delta =30*24*3600e3;
-        const cutoff = firebase.firestore.Timestamp.fromDate(new Date(now - delta));
-        ref = ref.where('createdAt','>=', cutoff);
-      }
-
-      // non-logged in see only latest 10
+      let ref = db.collection('publicEntries')
+                  .orderBy('createdAt','desc');
       if (!auth.currentUser) ref = ref.limit(10);
 
       ref.get()
@@ -339,48 +291,35 @@
     async function plotPublicMarkers(){
       if (!leafletReady) return;
 
-      // clear old
       markers.clearLayers();
 
-      // build same filtered query
-      let ref = db.collection('publicEntries').orderBy('createdAt','desc');
-      if (filterType.value) ref = ref.where('type','==', filterType.value);
-      if (filterTime.value!=='all') {
-        const now = Date.now();
-        let delta = 0;
-        switch(filterTime.value){
-          case '1h':  delta =  3600e3; break;
-          case '24h': delta = 24*3600e3; break;
-          case '7d':  delta = 7*24*3600e3; break;
-          case '30d': delta =30*24*3600e3; break;
-        }
-        const cutoff = firebase.firestore.Timestamp.fromDate(new Date(now - delta));
-        ref = ref.where('createdAt','>=', cutoff);
-      }
-
-      const snap = await ref.get();
-      await Promise.all(snap.docs.map(async docSnap => {
+      const snap = await db.collection('publicEntries').get();
+      for (let docSnap of snap.docs) {
         const d = docSnap.data();
         let { lat, lon } = d;
+
         // geocode if missing
-        if (lat==null||lon==null){
+        if (lat == null || lon == null) {
           const q = encodeURIComponent(`${d.location.state}, ${d.location.country}`);
           const res = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
           ).then(r=>r.json());
-          if (res[0]){
+          if (res[0]) {
             lat = parseFloat(res[0].lat);
             lon = parseFloat(res[0].lon);
             await docSnap.ref.update({ lat, lon });
-          } else return;
+          } else {
+            continue;
+          }
         }
+
         const m = L.marker([lat, lon])
                     .bindPopup(
                       `<strong>${d.type}</strong>: ${d.text}<br>` +
                       `<em>${d.location.state}, ${d.location.country}</em>`
                     );
         markers.addLayer(m);
-      }));
+      }
     }
   </script>
 </body>
