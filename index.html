@@ -186,9 +186,8 @@
       refreshPublic();
     });
 
-    // Re-run when filters change
+    // When filters change, re-draw
     filterType.onchange = filterTime.onchange = refreshPublic;
-
     function refreshPublic() {
       loadPublicFeed();
       if (leafletReady) plotPublicMarkers();
@@ -274,68 +273,88 @@
         .catch(console.error);
     }
 
-    // ── Load Public Feed (with filters) ────────
+    // ── Load Public Feed (client-side filters) ─
     function loadPublicFeed() {
       feedEntries.innerHTML = '';
-      let ref = db.collection('publicEntries').orderBy('createdAt','desc');
-      if (filterType.value) ref = ref.where('type','==', filterType.value);
-      if (filterTime.value!=='all') {
-        const now = Date.now();
-        let delta = { '1h':3600e3,'24h':24*3600e3,'7d':7*24*3600e3,'30d':30*24*3600e3 }[filterTime.value];
-        const cutoff = firebase.firestore.Timestamp.fromDate(new Date(now - delta));
-        ref = ref.where('createdAt','>=', cutoff);
-      }
-      if (!auth.currentUser) ref = ref.limit(10);
-      ref.get()
-         .then(snap => {
-           if (snap.empty) {
-             feedEntries.innerHTML = '<p>No public entries.</p>';
-             return;
-           }
-           snap.forEach(doc => {
-             const d = doc.data();
-             const loc = d.location||{};
-             const locText = loc.state?` (${loc.state},${loc.country})`:'';
-             const li = document.createElement('li');
-             li.textContent = `${d.type}: ${d.text}${locText}`;
-             feedEntries.append(li);
-           });
-         })
-         .catch(e => {
-           console.error(e);
-           feedEntries.innerHTML = '<p>Error loading public feed.</p>';
-         });
+      db.collection('publicEntries')
+        .orderBy('createdAt','desc')
+        .get()
+        .then(snap => {
+          let all = snap.docs.map(d=> ({ id:d.id, ...d.data() }) );
+          // apply type filter
+          if (filterType.value)
+            all = all.filter(x => x.type===filterType.value);
+          // apply time filter
+          if (filterTime.value!=='all') {
+            const now = Date.now();
+            const deltas = {
+              '1h': 3600_000,
+              '24h': 24*3600_000,
+              '7d': 7*24*3600_000,
+              '30d': 30*24*3600_000
+            };
+            const cutoff = now - deltas[filterTime.value];
+            all = all.filter(x => x.createdAt.toMillis() >= cutoff);
+          }
+          // for anon users, only show up to 10
+          if (!auth.currentUser) all = all.slice(0,10);
+
+          if (!all.length) {
+            feedEntries.innerHTML = '<p>No public entries.</p>';
+            return;
+          }
+          all.forEach(d => {
+            const loc = d.location||{};
+            const txtLoc = loc.state?` (${loc.state},${loc.country})`:'';
+            const li = document.createElement('li');
+            li.textContent = `${d.type}: ${d.text}${txtLoc}`;
+            feedEntries.append(li);
+          });
+        })
+        .catch(e => {
+          console.error(e);
+          feedEntries.innerHTML = '<p>Error loading public feed.</p>';
+        });
     }
 
-    // ── Plot Public Markers (with filters) ────
+    // ── Plot Public Markers (client-side filters) ─
     async function plotPublicMarkers() {
       if (!leafletReady) return;
       markers.clearLayers();
-      let ref = db.collection('publicEntries').orderBy('createdAt','desc');
-      if (filterType.value) ref = ref.where('type','==', filterType.value);
+      const snap = await db.collection('publicEntries')
+                           .orderBy('createdAt','desc')
+                           .get();
+      let all = snap.docs.map(d=> ({ ref:d.ref, ...d.data() }) );
+      if (filterType.value)
+        all = all.filter(x => x.type===filterType.value);
       if (filterTime.value!=='all') {
         const now = Date.now();
-        let delta = { '1h':3600e3,'24h':24*3600e3,'7d':7*24*3600e3,'30d':30*24*3600e3 }[filterTime.value];
-        const cutoff = firebase.firestore.Timestamp.fromDate(new Date(now - delta));
-        ref = ref.where('createdAt','>=', cutoff);
+        const deltas = {
+          '1h': 3600_000,
+          '24h': 24*3600_000,
+          '7d': 7*24*3600_000,
+          '30d': 30*24*3600_000
+        };
+        const cutoff = now - deltas[filterTime.value];
+        all = all.filter(x => x.createdAt.toMillis() >= cutoff);
       }
-      const snap = await ref.get();
-      await Promise.all(snap.docs.map(async docSnap => {
-        const d = docSnap.data();
+
+      // plot each
+      await Promise.all(all.map(async d => {
         let { lat, lon } = d;
         if (lat==null||lon==null) {
+          // geocode & update
           const q = encodeURIComponent(`${d.location.state}, ${d.location.country}`);
           const res = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
           ).then(r=>r.json());
-          if (res[0]) {
-            lat = parseFloat(res[0].lat);
-            lon = parseFloat(res[0].lon);
-            await docSnap.ref.update({ lat, lon });
-          } else return;
+          if (!res[0]) return;
+          lat = +res[0].lat; lon = +res[0].lon;
+          await d.ref.update({ lat, lon });
         }
         const m = L.marker([lat, lon]).bindPopup(
-          `<strong>${d.type}</strong>: ${d.text}<br><em>${d.location.state}, ${d.location.country}</em>`
+          `<strong>${d.type}</strong>: ${d.text}<br>` +
+          `<em>${d.location.state}, ${d.location.country}</em>`
         );
         markers.addLayer(m);
       }));
