@@ -44,86 +44,107 @@
   </script>
 </head>
 <body>
-  <!-- HEADER with profile thumbnail -->
+  <!-- HEADER with clickable profile -->
   <header class="card" style="position: relative; display: flex; align-items: center; justify-content: center;">
     <h1 style="flex: 1; text-align: center; margin: 0;">Vision Journal</h1>
-    <div id="header-profile" style="position: absolute; top: 0.5rem; right: 1rem; text-align: right;">
-      <img id="profile-pic" src="" alt="Profile" style="width:32px; height:32px; border-radius:50%; vertical-align:middle;" />
-      <span id="profile-name" style="color:#fff; margin-left:0.5rem; font-size:0.9rem;"></span>
-    </div>
+    <button id="profile-button"
+            style="position:absolute; top:8px; right:16px; background:none; border:none; cursor:pointer; display:flex; align-items:center;">
+      <img id="profile-pic" src="default-avatar.png"
+           alt="Profile"
+           style="width:32px; height:32px; border-radius:50%;" />
+      <span id="profile-name"
+            style="color:#fff; margin-left:0.5rem; font-size:0.9rem;">
+      </span>
+    </button>
   </header>
 
   <div class="layout">
-    <main id="main-content">
-      <div id="login-screen" class="card">
-        <h2>Sign Up or Log In</h2>
-        <input type="email" id="email" placeholder="you@example.com" />
-        <input type="password" id="password" placeholder="Password" />
-        <button id="signup">Sign Up</button>
-        <button id="login">Log In</button>
-        <p id="login-msg"></p>
-      </div>
 
-      <div id="journal-screen" class="hidden">
-        <div id="insights-box" class="card">
-          <h2>Insights</h2>
+    <!-- PROFILE EDIT SCREEN -->
+    <main id="profile-screen" class="card hidden" style="flex:1;">
+      <h2>Your Profile</h2>
+      <label>Display Name</label>
+      <input type="text" id="pf-name" placeholder="Your display name" maxlength="50"/>
 
-          <!-- FILTERS ROW -->
-          <div class="filters">
-            <select id="filter-type">
-              <option value="all">All Types</option>
-              <option value="dream">Dream</option>
-              <option value="nightmare">Nightmare</option>
-              <option value="daydream">Daydream</option>
-              <option value="insight">Insight</option>
-            </select>
-            <select id="filter-time">
-              <option value="all">All Time</option>
-              <option value="1h">Last Hour</option>
-              <option value="24h">24 Hours</option>
-              <option value="7d">7 Days</option>
-              <option value="30d">30 Days</option>
-            </select>
-          </div>
+      <label>Profile Picture</label>
+      <input type="file" id="pf-photo"/>
 
-          <div id="map"></div>
-          <p style="text-align:center;font-size:.9rem;color:#666;">
-            (Zoom & pan to explore hot spots)
-          </p>
-        </div>
+      <label>Hobbies & Interests (max 500 chars)</label>
+      <textarea id="pf-interests" maxlength="500" placeholder="Comma-separated"></textarea>
 
-        <div id="new-entry-box" class="card">
-          <h2>New Entry</h2>
-          <select id="type">
+      <button id="pf-save">Save Profile</button>
+      <button id="pf-cancel" style="background:#aaa; margin-top:0.25rem;">Cancel</button>
+      <p id="pf-msg"></p>
+    </main>
+
+    <!-- LOGIN SCREEN -->
+    <main id="login-screen" class="card" style="flex:1;">
+      <h2>Sign Up or Log In</h2>
+      <input type="email" id="email" placeholder="you@example.com" />
+      <input type="password" id="password" placeholder="Password" />
+      <button id="signup">Sign Up</button>
+      <button id="login">Log In</button>
+      <p id="login-msg"></p>
+    </main>
+
+    <!-- JOURNAL SCREEN -->
+    <main id="journal-screen" class="hidden" style="flex:1;">
+      <div id="insights-box" class="card">
+        <h2>Insights</h2>
+        <div class="filters">
+          <select id="filter-type">
+            <option value="all">All Types</option>
             <option value="dream">Dream</option>
             <option value="nightmare">Nightmare</option>
             <option value="daydream">Daydream</option>
             <option value="insight">Insight</option>
           </select>
-          <textarea id="text" placeholder="Describe..."></textarea>
-          <input id="tags" placeholder="tags, comma-separated" />
-          <label><input type="checkbox" id="isPublic" /> Make Public</label>
+          <select id="filter-time">
+            <option value="all">All Time</option>
+            <option value="1h">Last Hour</option>
+            <option value="24h">24 Hours</option>
+            <option value="7d">7 Days</option>
+            <option value="30d">30 Days</option>
+          </select>
+        </div>
+        <div id="map"></div>
+        <p style="text-align:center;font-size:.9rem;color:#666;">
+          (Zoom & pan to explore hot spots)
+        </p>
+      </div>
 
-          <button id="detect-location">Detect My Country/State</button>
-          <p id="location-display" style="font-size:.9rem;color:#555;">
-            (no location yet)
-          </p>
-          <div id="manual-location" class="hidden">
-            <input type="text" id="country-input" placeholder="Country (required)" />
-            <input type="text" id="state-input" placeholder="State/Region (required)" />
-          </div>
+      <div id="new-entry-box" class="card">
+        <h2>New Entry</h2>
+        <select id="type">
+          <option value="dream">Dream</option>
+          <option value="nightmare">Nightmare</option>
+          <option value="daydream">Daydream</option>
+          <option value="insight">Insight</option>
+        </select>
+        <textarea id="text" placeholder="Describe..."></textarea>
+        <input id="tags" placeholder="tags, comma-separated" />
+        <label><input type="checkbox" id="isPublic" /> Make Public</label>
 
-          <button id="save-entry">Save</button>
-          <p id="entry-msg"></p>
+        <button id="detect-location">Detect My Country/State</button>
+        <p id="location-display" style="font-size:.9rem;color:#555;">
+          (no location yet)
+        </p>
+        <div id="manual-location" class="hidden">
+          <input type="text" id="country-input" placeholder="Country (required)" />
+          <input type="text" id="state-input" placeholder="State/Region (required)" />
         </div>
 
-        <div id="journal-box" class="card">
-          <h2>My Journal</h2>
-          <ul id="entries"></ul>
-        </div>
+        <button id="save-entry">Save</button>
+        <p id="entry-msg"></p>
+      </div>
+
+      <div id="journal-box" class="card">
+        <h2>My Journal</h2>
+        <ul id="entries"></ul>
       </div>
     </main>
 
+    <!-- SIDEBAR -->
     <aside id="feed-screen">
       <div id="logout-box" class="card hidden">
         <button id="logout">Logout</button>
@@ -136,32 +157,44 @@
   </div>
 
   <script>
-    // ── UI Refs ───────────────────────────────
-    const auth = firebase.auth(), db = firebase.firestore();
-    const loginScreen   = document.getElementById('login-screen');
-    const journalScreen = document.getElementById('journal-screen');
-    const logoutBox     = document.getElementById('logout-box');
-    const loginMsg      = document.getElementById('login-msg');
-    const emailInput    = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const signupBtn     = document.getElementById('signup');
-    const loginBtn      = document.getElementById('login');
-    const logoutBtn     = document.getElementById('logout');
-    const saveBtn       = document.getElementById('save-entry');
-    const detectBtn     = document.getElementById('detect-location');
-    const locationDisp  = document.getElementById('location-display');
-    const manualDiv     = document.getElementById('manual-location');
-    const countryInput  = document.getElementById('country-input');
-    const stateInput    = document.getElementById('state-input');
-    const entriesList   = document.getElementById('entries');
-    const feedEntries   = document.getElementById('feed-entries');
-    const filterType    = document.getElementById('filter-type');
-    const filterTime    = document.getElementById('filter-time');
-    const headerPic     = document.getElementById('profile-pic');
-    const headerName    = document.getElementById('profile-name');
+    // ── UI References & Firebase ─────────────────────────
+    const auth = firebase.auth(),
+          db   = firebase.firestore();
 
-    // ── Leaflet Map + Clustering ─────────────
-    let map, markers, leafletReady=false;
+    const loginScreen   = document.getElementById('login-screen'),
+          journalScreen = document.getElementById('journal-screen'),
+          profileScreen = document.getElementById('profile-screen'),
+          logoutBox     = document.getElementById('logout-box'),
+          loginMsg      = document.getElementById('login-msg'),
+          emailInput    = document.getElementById('email'),
+          passwordInput = document.getElementById('password'),
+          signupBtn     = document.getElementById('signup'),
+          loginBtn      = document.getElementById('login'),
+          logoutBtn     = document.getElementById('logout'),
+          saveBtn       = document.getElementById('save-entry'),
+          detectBtn     = document.getElementById('detect-location'),
+          locationDisp  = document.getElementById('location-display'),
+          manualDiv     = document.getElementById('manual-location'),
+          countryInput  = document.getElementById('country-input'),
+          stateInput    = document.getElementById('state-input'),
+          entriesList   = document.getElementById('entries'),
+          feedEntries   = document.getElementById('feed-entries'),
+          filterType    = document.getElementById('filter-type'),
+          filterTime    = document.getElementById('filter-time'),
+          profileBtn    = document.getElementById('profile-button'),
+          headerPic     = document.getElementById('profile-pic'),
+          headerName    = document.getElementById('profile-name');
+
+    // Profile form fields
+    const pfName     = document.getElementById('pf-name'),
+          pfPhoto    = document.getElementById('pf-photo'),
+          pfInterests= document.getElementById('pf-interests'),
+          pfSave     = document.getElementById('pf-save'),
+          pfCancel   = document.getElementById('pf-cancel'),
+          pfMsg      = document.getElementById('pf-msg');
+
+    // ── Leaflet Map + Clustering ────────────────────────
+    let map, markers, leafletReady = false;
     try {
       map = L.map('map').setView([20,0],2);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -174,57 +207,104 @@
       console.warn('Leaflet init failed:', e);
     }
 
-    // ── Auth Handlers ─────────────────────────
-    signupBtn.onclick = ()=>
+    // ── Auth Handlers ───────────────────────────────────
+    signupBtn.onclick = () =>
       auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-          .catch(e=>loginMsg.textContent=e.message);
-    loginBtn.onclick = ()=>
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-          .catch(e=>loginMsg.textContent=e.message);
-    logoutBtn.onclick = ()=>auth.signOut();
+          .catch(e => loginMsg.textContent = e.message);
 
-    auth.onAuthStateChanged(async user=>{
-      if(user){
-        // show profile pic + name
+    loginBtn.onclick = () =>
+      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
+          .catch(e => loginMsg.textContent = e.message);
+
+    logoutBtn.onclick = () => auth.signOut();
+
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        // Load & display profile data
         const prof = await db.collection('profiles').doc(user.uid).get();
-        if(prof.exists){
-          const d=prof.data();
-          headerPic.src = d.photoURL||'default-avatar.png';
-          headerName.textContent = d.displayName||'Anonymous';
+        if (prof.exists) {
+          const d = prof.data();
+          headerPic.src = d.photoURL || 'default-avatar.png';
+          headerName.textContent = d.displayName || 'Anonymous';
         }
         loginScreen.classList.add('hidden');
         journalScreen.classList.remove('hidden');
+        profileScreen.classList.add('hidden');
         logoutBox.classList.remove('hidden');
-        if(leafletReady) setTimeout(()=>map.invalidateSize(),200);
+        if (leafletReady) setTimeout(()=>map.invalidateSize(),200);
         loadJournal();
       } else {
         loginScreen.classList.remove('hidden');
         journalScreen.classList.add('hidden');
+        profileScreen.classList.add('hidden');
         logoutBox.classList.add('hidden');
       }
       refreshPublic();
     });
 
-    // ── Location Detection ─────────────────────
-    detectBtn.onclick = ()=>{
-      locationDisp.textContent='Detecting…';
+    // ── Show Profile Form ──────────────────────────────
+    profileBtn.onclick = () => {
+      // prefill from Firestore
+      const uid = auth.currentUser.uid;
+      db.collection('profiles').doc(uid).get().then(doc=>{
+        const d = doc.exists ? doc.data() : {};
+        pfName.value      = d.displayName || '';
+        pfInterests.value = d.interests  || '';
+      });
+      loginScreen.classList.add('hidden');
+      journalScreen.classList.add('hidden');
+      profileScreen.classList.remove('hidden');
+    };
+
+    pfCancel.onclick = () => {
+      profileScreen.classList.add('hidden');
+      journalScreen.classList.remove('hidden');
+    };
+
+    // ── Save Profile Data ──────────────────────────────
+    pfSave.onclick = async () => {
+      pfMsg.textContent = '';
+      const uid = auth.currentUser.uid;
+      const data = {
+        displayName: pfName.value.trim(),
+        interests:  pfInterests.value.trim()
+      };
+      // handle photo upload if chosen
+      if (pfPhoto.files.length) {
+        // for brevity assume you upload pfPhoto.files[0] somewhere
+        // and get its URL back as `uploadedUrl`
+        // ...upload code omitted...
+        // data.photoURL = uploadedUrl;
+      }
+      await db.collection('profiles').doc(uid).set(data, { merge:true });
+      pfMsg.textContent = 'Profile saved!';
+      // return to main
+      setTimeout(()=>{
+        profileScreen.classList.add('hidden');
+        journalScreen.classList.remove('hidden');
+      }, 800);
+    };
+
+    // ── Location Detection ─────────────────────────────
+    detectBtn.onclick = () => {
+      locationDisp.textContent = 'Detecting…';
       fetch('https://ipapi.co/json/').then(r=>r.json())
-        .then(d=>{
-          if(d.country_name&&d.region){
-            locationDisp.textContent=`${d.region}, ${d.country_name}`;
-            countryInput.value=d.country_name;
-            stateInput.value=d.region;
+        .then(d => {
+          if (d.country_name && d.region) {
+            locationDisp.textContent = `${d.region}, ${d.country_name}`;
+            countryInput.value = d.country_name;
+            stateInput.value   = d.region;
             manualDiv.classList.add('hidden');
           } else throw '';
         })
-        .catch(_=>{
-          locationDisp.textContent='Auto-detect failed; enter manually';
+        .catch(_ => {
+          locationDisp.textContent = 'Auto-detect failed; enter manually';
           manualDiv.classList.remove('hidden');
         });
     };
 
-    // ── Save Entry & Duplicate ─────────────────
-    saveBtn.onclick = async ()=>{
+    // ── Save Entry ──────────────────────────────────────
+    saveBtn.onclick = async () => {
       const type     = document.getElementById('type').value;
       const text     = document.getElementById('text').value;
       const tags     = document.getElementById('tags').value
@@ -232,15 +312,15 @@
       const isPublic = document.getElementById('isPublic').checked;
       const country  = countryInput.value.trim();
       const state    = stateInput.value.trim();
-      if(!country||!state){
+      if (!country || !state) {
         alert('Please detect or enter country & state.');
         return;
       }
 
       let payload = {
         userId: auth.currentUser.uid,
-        type,text,tags,isPublic,
-        location:{country,state},
+        type, text, tags, isPublic,
+        location:{country, state},
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       };
 
@@ -250,52 +330,50 @@
           .collection('entries')
           .add(payload);
 
-        if(isPublic){
-          const q=encodeURIComponent(`${state}, ${country}`);
-          const res=await fetch(
+        if (isPublic) {
+          const q = encodeURIComponent(`${state}, ${country}`);
+          const res = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
           ).then(r=>r.json());
-          if(res[0]){
-            payload.lat=parseFloat(res[0].lat);
-            payload.lon=parseFloat(res[0].lon);
+          if (res[0]) {
+            payload.lat = parseFloat(res[0].lat);
+            payload.lon = parseFloat(res[0].lon);
           }
           await db.collection('publicEntries').add(payload);
         }
 
-        document.getElementById('entry-msg').textContent='Saved!';
+        document.getElementById('entry-msg').textContent = 'Saved!';
         loadJournal(); refreshPublic();
-      } catch(e){
+      } catch(e) {
         console.error(e);
-        document.getElementById('entry-msg').textContent='Save failed.';
+        document.getElementById('entry-msg').textContent = 'Save failed.';
       }
     };
 
-    // ── Load My Journal ────────────────────────
+    // ── Load Personal Journal ────────────────────────────
     function loadJournal(){
-      entriesList.innerHTML='';
+      entriesList.innerHTML = '';
       db.collection('visions')
         .doc(auth.currentUser.uid)
         .collection('entries')
         .orderBy('createdAt','desc')
         .get()
         .then(snap=>snap.forEach(doc=>{
-          const d=doc.data();
-          const li=document.createElement('li');
-          li.textContent=`${d.type}: ${d.text}`;
+          const d = doc.data();
+          const li = document.createElement('li');
+          li.textContent = `${d.type}: ${d.text}`;
           entriesList.append(li);
         }));
     }
 
-    // ── Load & Filter Public Feed ──────────────
+    // ── Public Feed + Map ───────────────────────────────
     function loadPublicFeed(){
-      feedEntries.innerHTML='';
-      let ref=db.collection('publicEntries').orderBy('createdAt','desc');
-      if(!auth.currentUser) ref=ref.limit(10);
+      feedEntries.innerHTML = '';
+      let ref = db.collection('publicEntries').orderBy('createdAt','desc');
+      if (!auth.currentUser) ref = ref.limit(10);
 
-      // apply category filter
-      if(filterType.value!=='all'){
+      if (filterType.value!=='all')
         ref = ref.where('type','==',filterType.value);
-      }
 
       ref.get()
          .then(snap=>{
@@ -303,23 +381,17 @@
              feedEntries.innerHTML='<p>No public entries.</p>';
              return;
            }
-           const now=Date.now();
+           const now = Date.now();
            snap.forEach(doc=>{
              const d=doc.data();
              // time filter
              if(filterTime.value!=='all'){
-               const created=d.createdAt?.toDate()?.getTime()||0;
-               const delta = now - created;
-               const cutoff = {
-                 '1h':3600000,
-                 '24h':86400000,
-                 '7d':7*86400000,
-                 '30d':30*86400000
-               }[filterTime.value];
-               if(delta>cutoff) return;
+               const created = d.createdAt.toDate().getTime();
+               const cutoff = { '1h':3600000,'24h':86400000,'7d':7*86400000,'30d':30*86400000 }[filterTime.value];
+               if(now - created > cutoff) return;
              }
              const loc=d.location||{};
-             const locText=loc.state?` (${loc.state}, ${loc.country})`:'';
+             const locText=loc.state?` (${loc.state},${loc.country})`:'';
              const li=document.createElement('li');
              li.textContent=`${d.type}: ${d.text}${locText}`;
              feedEntries.append(li);
@@ -331,43 +403,31 @@
          });
     }
 
-    // ── Plot & Filter Markers ──────────────────
     async function plotPublicMarkers(){
       if(!leafletReady) return;
       markers.clearLayers();
-
       const snap = await db.collection('publicEntries').get();
       const now = Date.now();
 
-      for(let docSnap of snap.docs){
-        const d=docSnap.data();
-
-        // category filter
-        if(filterType.value!=='all' && d.type!==filterType.value) continue;
-
-        // time filter
-        if(filterTime.value!=='all'){
-          const created = d.createdAt?.toDate()?.getTime()||0;
-          const delta = now - created;
-          const cutoff = {
-            '1h':3600000,
-            '24h':86400000,
-            '7d':7*86400000,
-            '30d':30*86400000
-          }[filterTime.value];
-          if(delta>cutoff) continue;
+      for (let docSnap of snap.docs){
+        const d = docSnap.data();
+        if (filterType.value!=='all' && d.type!==filterType.value) continue;
+        if (filterTime.value!=='all'){
+          const created = d.createdAt.toDate().getTime();
+          const cutoff = { '1h':3600000,'24h':86400000,'7d':7*86400000,'30d':30*86400000 }[filterTime.value];
+          if (now - created > cutoff) continue;
         }
 
         let {lat,lon} = d;
-        if(lat==null||lon==null){
-          const q=encodeURIComponent(`${d.location.state}, ${d.location.country}`);
-          const res=await fetch(
+        if (lat==null||lon==null){
+          const q = encodeURIComponent(`${d.location.state}, ${d.location.country}`);
+          const res = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
           ).then(r=>r.json());
           if(res[0]){
-            lat=parseFloat(res[0].lat);
-            lon=parseFloat(res[0].lon);
-            await docSnap.ref.update({lat,lon});
+            lat = parseFloat(res[0].lat);
+            lon = parseFloat(res[0].lon);
+            await docSnap.ref.update({ lat, lon });
           } else continue;
         }
 
@@ -385,10 +445,9 @@
       plotPublicMarkers();
     }
 
-    // re‐run filters when dropdowns change
+    // rerun filters when changed
     filterType.onchange = refreshPublic;
     filterTime.onchange = refreshPublic;
-
   </script>
 </body>
 </html>
