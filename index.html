@@ -4,14 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Vision Journal</title>
+
   <!-- styles -->
   <link rel="stylesheet" href="style.css" />
+
   <!-- Leaflet & MarkerCluster -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth-compat.js"></script>
@@ -44,8 +47,9 @@
           <input type="file" id="profile-pic" accept="image/*" />
         </label>
         <label>
-          Hobbies & Interests (comma separated)
-          <input type="text" id="profile-hobbies" placeholder="hiking, painting…" />
+          Hobbies & Interests
+          <textarea id="profile-hobbies" maxlength="500" rows="3"
+            placeholder="Tell us about your hobbies… (max 500 chars)"></textarea>
         </label>
         <button id="save-profile">Save Profile</button>
         <p id="profile-msg"></p>
@@ -55,11 +59,10 @@
       <div id="journal-screen" class="hidden">
         <!-- PROFILE CARD -->
         <div id="profile-card" class="card">
-          <img id="card-pic" src="" alt="Profile picture" style="width:60px;height:60px;border-radius:30px;float:right;" />
+          <img id="card-pic" src="" alt="Profile picture"
+               style="width:60px;height:60px;border-radius:30px;float:right;" />
           <h3 id="card-name"></h3>
           <p id="card-hobbies"></p>
-          <p id="card-location"></p>
-          <button id="edit-profile">Edit Profile</button>
         </div>
 
         <!-- INSIGHTS MAP -->
@@ -87,7 +90,7 @@
           <p id="location-display">(no location yet)</p>
           <div id="manual-location" class="hidden">
             <input type="text" id="country-input" placeholder="Country (required)" />
-            <input type="text" id="state-input" placeholder="State/Region (required)" />
+            <input type="text" id="state-input"   placeholder="State/Region (required)" />
           </div>
           <button id="save-entry">Save</button>
           <p id="entry-msg"></p>
@@ -114,11 +117,12 @@
   </div>
 
   <!-- PROFILE MODAL -->
-  <div id="profile-modal" class="card hidden" style="position:fixed;top:20%;left:30%;width:40%;z-index:1000;">
+  <div id="profile-modal" class="card hidden"
+       style="position:fixed;top:20%;left:30%;width:40%;z-index:1000;">
     <button id="close-modal" style="float:right;">×</button>
     <h2 id="modal-name"></h2>
-    <img id="modal-pic" src="" style="width:80px;height:80px;border-radius:40px;" />
-    <p><strong>Location:</strong> <span id="modal-location"></span></p>
+    <img id="modal-pic" src=""
+         style="width:80px;height:80px;border-radius:40px;" />
     <p><strong>Hobbies:</strong> <span id="modal-hobbies"></span></p>
   </div>
 
@@ -154,13 +158,10 @@
           cardName      = document.getElementById('card-name'),
           cardPic       = document.getElementById('card-pic'),
           cardHobbies   = document.getElementById('card-hobbies'),
-          cardLocation  = document.getElementById('card-location'),
-          editProfile   = document.getElementById('edit-profile'),
           feedEntries   = document.getElementById('feed-entries'),
           modal         = document.getElementById('profile-modal'),
           modalName     = document.getElementById('modal-name'),
           modalPic      = document.getElementById('modal-pic'),
-          modalLoc      = document.getElementById('modal-location'),
           modalHobbies  = document.getElementById('modal-hobbies'),
           closeModal    = document.getElementById('close-modal'),
           // entry UI
@@ -208,14 +209,12 @@
         logoutBox.classList.add('hidden');
         return;
       }
-      // see if profile exists
+      // check for existing profile
       const doc = await db.collection('users').doc(user.uid).get();
       if(!doc.exists) {
         loginScreen.classList.add('hidden');
         profileScreen.classList.remove('hidden');
-        journalScreen.classList.add('hidden');
       } else {
-        // load profile into UI
         const p = doc.data();
         setupProfileCard(p);
         loginScreen.classList.add('hidden');
@@ -234,72 +233,70 @@
       const name = nameInput.value.trim();
       const hobbies = hobbiesInput.value.trim();
       if(!name) {
-        profileMsg.textContent = 'Name is required';
+        profileMsg.textContent = 'Display name is required';
         return;
       }
-      let picData = '';
+      // fetch existing pic if none chosen
+      let existing = '';
+      const docRef = db.collection('users').doc(user.uid);
+      const existingDoc = await docRef.get();
+      if(existingDoc.exists) existing = existingDoc.data().pic || '';
+
+      // if a new file is chosen, convert to Base64
+      let picData = existing;
       if(picInput.files[0]) {
-        picData = await toBase64(picInput.files[0]);
+        picData = await new Promise(r=>{
+          const fr = new FileReader();
+          fr.onload = ()=>r(fr.result);
+          fr.readAsDataURL(picInput.files[0]);
+        });
       }
+
       const profile = {
-        name, hobbies: hobbies.split(',').map(s=>s.trim()),
+        name,
+        hobbies: hobbies.split(',').map(s=>s.trim()),
         pic: picData
       };
-      await db.collection('users').doc(user.uid).set(profile);
+      await docRef.set(profile);
+
       profileMsg.textContent = 'Saved!';
       setupProfileCard(profile);
-      auth.onAuthStateChanged(()=>{}); // trigger UI swap
+
+      // automatically go to journal
+      profileScreen.classList.add('hidden');
+      journalScreen.classList.remove('hidden');
+      loadJournal();
+      refreshPublic();
     };
 
-    // helper to convert file→Base64
-    function toBase64(file) {
-      return new Promise(r=>{
-        const fr = new FileReader();
-        fr.onload = ()=>r(fr.result);
-        fr.readAsDataURL(file);
-      });
-    }
-
-    // fill in the profile card
     function setupProfileCard(p) {
-      cardName.textContent = p.name;
-      cardPic.src = p.pic||'';
-      cardHobbies.textContent = 'Hobbies: '+ (p.hobbies||[]).join(', ');
-      cardLocation.textContent = '';
+      cardName.textContent    = p.name;
+      cardPic.src             = p.pic||'';
+      cardHobbies.textContent = 'Hobbies: ' + (p.hobbies||[]).join(', ');
     }
-
-    editProfile.onclick = ()=> {
-      profileScreen.classList.remove('hidden');
-      journalScreen.classList.add('hidden');
-      // prefill
-      const user = auth.currentUser;
-      db.collection('users').doc(user.uid).get()
-        .then(d=> {
-          const p = d.data()||{};
-          nameInput.value = p.name||'';
-          hobbiesInput.value = (p.hobbies||[]).join(', ');
-        });
-    };
 
     // ── LOCATION DETECTION ───────────────────
     detectBtn.onclick = () => {
       locationDisp.textContent = 'Detecting…';
-      fetch('https://ipapi.co/json/').then(r=>r.json()).then(d=>{
-        if(d.country_name && d.region) {
-          locationDisp.textContent = `${d.region}, ${d.country_name}`;
-          countryInput.value=d.country_name;
-          stateInput.value=d.region;
-          manualDiv.classList.add('hidden');
-        } else throw '';
-      }).catch(_=>{
-        locationDisp.textContent='Auto-detect failed; enter manually';
-        manualDiv.classList.remove('hidden');
-      });
+      fetch('https://ipapi.co/json/')
+        .then(r=>r.json())
+        .then(d => {
+          if(d.country_name && d.region) {
+            locationDisp.textContent = `${d.region}, ${d.country_name}`;
+            countryInput.value = d.country_name;
+            stateInput.value   = d.region;
+            manualDiv.classList.add('hidden');
+          } else throw '';
+        })
+        .catch(_ => {
+          locationDisp.textContent = 'Auto-detect failed; enter manually';
+          manualDiv.classList.remove('hidden');
+        });
     };
 
     // ── SAVE ENTRY ───────────────────────────
     saveEntryBtn.onclick = async () => {
-      const user = auth.currentUser;
+      const user    = auth.currentUser;
       const country = countryInput.value.trim(),
             state   = stateInput.value.trim();
       if(!country||!state) {
@@ -308,17 +305,16 @@
       }
       const payload = {
         userId: user.uid,
-        type: typeInput.value,
-        text: textInput.value,
-        tags: tagsInput.value.split(',').map(s=>s.trim()).filter(Boolean),
+        type:   typeInput.value,
+        text:   textInput.value,
+        tags:   tagsInput.value.split(',').map(s=>s.trim()).filter(Boolean),
         isPublic: isPublicInput.checked,
-        location: {country, state},
+        location: { country, state },
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       };
       await db.collection('visions').doc(user.uid)
-        .collection('entries').add(payload);
+              .collection('entries').add(payload);
       if(payload.isPublic) {
-        // geocode + duplicate
         const q = encodeURIComponent(`${state}, ${country}`);
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
@@ -329,14 +325,14 @@
         }
         await db.collection('publicEntries').add(payload);
       }
-      entryMsg.textContent='Saved!';
+      entryMsg.textContent = 'Saved!';
       loadJournal();
       refreshPublic();
     };
 
     // ── LOAD MY JOURNAL ──────────────────────
     function loadJournal(){
-      entriesList.innerHTML='';
+      entriesList.innerHTML = '';
       const uid = auth.currentUser.uid;
       db.collection('visions').doc(uid)
         .collection('entries').orderBy('createdAt','desc')
@@ -357,7 +353,7 @@
     }
 
     function loadPublicFeed(){
-      feedEntries.innerHTML='';
+      feedEntries.innerHTML = '';
       let ref = db.collection('publicEntries').orderBy('createdAt','desc');
       if(!auth.currentUser) ref = ref.limit(10);
       ref.get().then(snap=>{
@@ -374,18 +370,17 @@
           feedEntries.append(li);
         });
       }).catch(_=>{
-        feedEntries.innerHTML='<p>Error loading public feed.</p>';
+        feedEntries.innerHTML = '<p>Error loading public feed.</p>';
       });
     }
 
     function showProfileModal(up){
-      modalName.textContent = up.name;
-      modalPic.src = up.pic||'';
-      modalLoc.textContent = '';
-      modalHobbies.textContent = (up.hobbies||[]).join(', ');
+      modalName.textContent   = up.name;
+      modalPic.src            = up.pic||'';
+      modalHobbies.textContent= (up.hobbies||[]).join(', ');
       modal.classList.remove('hidden');
     }
-    closeModal.onclick = ()=>modal.classList.add('hidden');
+    closeModal.onclick = ()=> modal.classList.add('hidden');
 
     // ── PLOT MAP ─────────────────────────────
     async function plotPublicMarkers(){
