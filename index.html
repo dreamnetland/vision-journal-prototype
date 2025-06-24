@@ -5,25 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Vision Journal</title>
 
-  <!-- your styles -->
+  <!-- styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Leaflet core CSS & JS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-  />
+  <!-- Leaflet & MarkerCluster CSS/JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-
-  <!-- MarkerCluster plugin CSS & JS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <!-- Firebase compat SDKs -->
@@ -32,14 +21,10 @@
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <header class="card">
-    <h1>Vision Journal</h1>
-  </header>
+  <header class="card"><h1>Vision Journal</h1></header>
 
   <div class="layout">
-    <!-- MAIN COLUMN -->
     <main id="main-content">
-      <!-- LOGIN SCREEN -->
       <div id="login-screen" class="card">
         <h2>Sign Up or Log In</h2>
         <input type="email" id="email" placeholder="you@example.com" />
@@ -49,13 +34,9 @@
         <p id="login-msg"></p>
       </div>
 
-      <!-- JOURNAL + INSIGHTS -->
       <div id="journal-screen" class="hidden">
-        <!-- INSIGHTS MAP + FILTERS -->
         <div id="insights-box" class="card">
           <h2>Insights</h2>
-
-          <!-- Filters row -->
           <div style="display:flex; gap:1rem; margin-bottom:0.5rem;">
             <select id="category-filter">
               <option value="all">All Types</option>
@@ -74,14 +55,12 @@
               <option value="5years">Last 5 years</option>
             </select>
           </div>
-
           <div id="map"></div>
           <p style="text-align:center;font-size:.9rem;color:#666;">
             (Zoom & pan to explore hot spots)
           </p>
         </div>
 
-        <!-- NEW ENTRY FORM -->
         <div id="new-entry-box" class="card">
           <h2>New Entry</h2>
           <select id="type">
@@ -92,32 +71,21 @@
           </select>
           <textarea id="text" placeholder="Describe..."></textarea>
           <input id="tags" placeholder="tags, comma-separated" />
-          <label>
-            <input type="checkbox" id="isPublic" /> Make Public
-          </label>
+          <label><input type="checkbox" id="isPublic" /> Make Public</label>
 
           <button id="detect-location">Detect My Country/State</button>
           <p id="location-display" style="font-size:.9rem;color:#555;">
             (no location yet)
           </p>
           <div id="manual-location" class="hidden">
-            <input
-              type="text"
-              id="country-input"
-              placeholder="Country (required)"
-            />
-            <input
-              type="text"
-              id="state-input"
-              placeholder="State/Region (required)"
-            />
+            <input type="text" id="country-input" placeholder="Country (required)" />
+            <input type="text" id="state-input" placeholder="State/Region (required)" />
           </div>
 
           <button id="save-entry">Save</button>
           <p id="entry-msg"></p>
         </div>
 
-        <!-- MY JOURNAL LIST -->
         <div id="journal-box" class="card">
           <h2>My Journal</h2>
           <ul id="entries"></ul>
@@ -125,7 +93,6 @@
       </div>
     </main>
 
-    <!-- RIGHT SIDEBAR -->
     <aside id="feed-screen">
       <div id="logout-box" class="card hidden">
         <button id="logout">Logout</button>
@@ -150,60 +117,54 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.firestore();
 
-    // ── UI References ─────────────────────────
-    const loginScreen     = document.getElementById('login-screen');
-    const journalScreen   = document.getElementById('journal-screen');
-    const logoutBox       = document.getElementById('logout-box');
-    const loginMsg        = document.getElementById('login-msg');
-    const emailInput      = document.getElementById('email');
-    const passwordInput   = document.getElementById('password');
-    const signupBtn       = document.getElementById('signup');
-    const loginBtn        = document.getElementById('login');
-    const logoutBtn       = document.getElementById('logout');
-    const saveBtn         = document.getElementById('save-entry');
-    const detectBtn       = document.getElementById('detect-location');
-    const locationDisp    = document.getElementById('location-display');
-    const manualDiv       = document.getElementById('manual-location');
-    const countryInput    = document.getElementById('country-input');
-    const stateInput      = document.getElementById('state-input');
-    const entriesList     = document.getElementById('entries');
-    const feedEntries     = document.getElementById('feed-entries');
-    const categoryFilter  = document.getElementById('category-filter');
-    const timeFilter      = document.getElementById('time-filter');
+    // ── UI Refs ───────────────────────────────
+    const loginScreen    = document.getElementById('login-screen');
+    const journalScreen  = document.getElementById('journal-screen');
+    const logoutBox      = document.getElementById('logout-box');
+    const loginMsg       = document.getElementById('login-msg');
+    const emailInput     = document.getElementById('email');
+    const passwordInput  = document.getElementById('password');
+    const signupBtn      = document.getElementById('signup');
+    const loginBtn       = document.getElementById('login');
+    const logoutBtn      = document.getElementById('logout');
+    const saveBtn        = document.getElementById('save-entry');
+    const detectBtn      = document.getElementById('detect-location');
+    const locationDisp   = document.getElementById('location-display');
+    const manualDiv      = document.getElementById('manual-location');
+    const countryInput   = document.getElementById('country-input');
+    const stateInput     = document.getElementById('state-input');
+    const entriesList    = document.getElementById('entries');
+    const feedEntries    = document.getElementById('feed-entries');
+    const categoryFilter = document.getElementById('category-filter');
+    const timeFilter     = document.getElementById('time-filter');
 
-    // ── Leaflet + Cluster Setup ───────────────
-    let map, markerGroup, leafletReady = false;
+    // ── Leaflet + Clusters ────────────────────
+    let map, markerGroup, leafletReady=false;
     try {
-      map = L.map('map').setView([20, 0], 2);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap'
+      map = L.map('map').setView([20,0],2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+        attribution:'&copy;OpenStreetMap'
       }).addTo(map);
-
       markerGroup = L.markerClusterGroup();
       map.addLayer(markerGroup);
-
       leafletReady = true;
-    } catch (e) {
-      console.warn('Leaflet init failed:', e);
-    }
+    } catch(e){ console.warn('Leaflet:',e) }
 
-    // ── Authentication ────────────────────────
+    // ── Auth ───────────────────────────────────
     signupBtn.onclick = () =>
-      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-          .catch(e => loginMsg.textContent = e.message);
-
+      auth.createUserWithEmailAndPassword(emailInput.value,passwordInput.value)
+          .catch(e=>loginMsg.textContent=e.message);
     loginBtn.onclick = () =>
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-          .catch(e => loginMsg.textContent = e.message);
+      auth.signInWithEmailAndPassword(emailInput.value,passwordInput.value)
+          .catch(e=>loginMsg.textContent=e.message);
+    logoutBtn.onclick = ()=>auth.signOut();
 
-    logoutBtn.onclick = () => auth.signOut();
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
+    auth.onAuthStateChanged(user=>{
+      if(user){
         loginScreen.classList.add('hidden');
         journalScreen.classList.remove('hidden');
         logoutBox.classList.remove('hidden');
-        if (leafletReady) setTimeout(() => map.invalidateSize(), 200);
+        if(leafletReady) setTimeout(()=>map.invalidateSize(),200);
         loadJournal();
       } else {
         loginScreen.classList.remove('hidden');
@@ -213,196 +174,189 @@
       refreshPublic();
     });
 
-    // whenever filters change:
+    // re-load feed + map any time filters change
     categoryFilter.onchange = timeFilter.onchange = refreshPublic;
-
-    function refreshPublic() {
+    function refreshPublic(){
       loadPublicFeed();
-      if (leafletReady) plotPublicMarkers();
+      if(leafletReady) plotPublicMarkers();
     }
 
-    // ── Location Detection ─────────────────────
-    detectBtn.onclick = () => {
-      locationDisp.textContent = 'Detecting…';
-      fetch('https://ipapi.co/json/')
-        .then(r => r.json())
-        .then(d => {
-          if (d.country_name && d.region) {
-            locationDisp.textContent = `${d.region}, ${d.country_name}`;
-            countryInput.value = d.country_name;
-            stateInput.value   = d.region;
-            manualDiv.classList.add('hidden');
-          } else throw '';
-        })
-        .catch(_ => {
-          locationDisp.textContent = 'Auto-detect failed; enter manually';
-          manualDiv.classList.remove('hidden');
-        });
+    // ── Location Detect ───────────────────────
+    detectBtn.onclick = ()=>{
+      locationDisp.textContent='Detecting…';
+      fetch('https://ipapi.co/json/').then(r=>r.json())
+      .then(d=>{
+        if(d.country_name&&d.region){
+          locationDisp.textContent=`${d.region}, ${d.country_name}`;
+          countryInput.value=d.country_name;
+          stateInput.value=d.region;
+          manualDiv.classList.add('hidden');
+        } else throw '';
+      })
+      .catch(_=>{
+        locationDisp.textContent='Auto-detect failed; enter manually';
+        manualDiv.classList.remove('hidden');
+      });
     };
 
-    // ── Save Entry & Duplicate if Public ─────
-    saveBtn.onclick = async () => {
+    // ── Save Entry + Duplicate if Public ─────
+    saveBtn.onclick = async()=>{
       const type     = document.getElementById('type').value;
       const text     = document.getElementById('text').value;
       const tags     = document.getElementById('tags').value
-                        .split(',').map(s => s.trim()).filter(Boolean);
+                         .split(',').map(s=>s.trim()).filter(Boolean);
       const isPublic = document.getElementById('isPublic').checked;
       const country  = countryInput.value.trim();
       const state    = stateInput.value.trim();
-      if (!country || !state) {
-        alert('Please detect or enter country & state.');
-        return;
+      if(!country||!state){
+        return alert('Please detect or enter country & state.');
       }
 
       let payload = {
-        userId: auth.currentUser.uid,
-        type, text, tags, isPublic,
-        location: { country, state },
+        userId:auth.currentUser.uid,
+        type,text,tags,isPublic,
+        location:{country,state},
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       };
 
       try {
-        // 1) save to private journal
         await db.collection('visions')
                 .doc(auth.currentUser.uid)
                 .collection('entries')
                 .add(payload);
 
-        // 2) if public, geocode + write flat
-        if (isPublic) {
+        if(isPublic){
           const q   = encodeURIComponent(`${state}, ${country}`);
           const res = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
-          ).then(r => r.json());
-          if (res[0]) {
+          ).then(r=>r.json());
+          if(res[0]){
             payload.lat = +res[0].lat;
             payload.lon = +res[0].lon;
           }
           await db.collection('publicEntries').add(payload);
         }
 
-        document.getElementById('entry-msg').textContent = 'Saved!';
-        loadJournal();
-        refreshPublic();
-      } catch (e) {
+        document.getElementById('entry-msg').textContent='Saved!';
+        loadJournal(); refreshPublic();
+      } catch(e){
         console.error(e);
-        document.getElementById('entry-msg').textContent = 'Save failed.';
+        document.getElementById('entry-msg').textContent='Save failed.';
       }
     };
 
     // ── Load Private Journal ───────────────────
-    function loadJournal() {
-      entriesList.innerHTML = '';
+    function loadJournal(){
+      entriesList.innerHTML='';
       db.collection('visions')
         .doc(auth.currentUser.uid)
         .collection('entries')
-        .orderBy('createdAt', 'desc')
+        .orderBy('createdAt','desc')
         .get()
-        .then(snap => {
-          snap.forEach(doc => {
-            const d = doc.data();
-            const li = document.createElement('li');
-            li.textContent = `${d.type}: ${d.text}`;
-            entriesList.append(li);
-          });
-        })
+        .then(snap=>snap.forEach(doc=>{
+          const d=doc.data();
+          const li=document.createElement('li');
+          li.textContent=`${d.type}: ${d.text}`;
+          entriesList.append(li);
+        }))
         .catch(console.error);
     }
 
-    // ── Load Public Feed with Filters ─────────
-    function loadPublicFeed() {
-      feedEntries.innerHTML = '';
+    // ── Load Public Feed with Time + Category ─
+    function loadPublicFeed(){
+      feedEntries.innerHTML='';
 
       let ref = db.collection('publicEntries');
 
-      // category
-      const cat = categoryFilter.value;
-      if (cat !== 'all') ref = ref.where('type', '==', cat);
-
-      // time window
-      const now = new Date();
-      let cutoff;
-      switch (timeFilter.value) {
-        case 'hour':   cutoff = new Date(now - 1000 * 60 * 60); break;
-        case 'day':    cutoff = new Date(now - 1000 * 60 * 60 * 24); break;
-        case 'week':   cutoff = new Date(now - 1000 * 60 * 60 * 24 * 7); break;
-        case 'month':  cutoff = new Date(now.setMonth(now.getMonth() - 1)); break;
-        case 'year':   cutoff = new Date(now.setFullYear(now.getFullYear() - 1)); break;
-        case '5years': cutoff = new Date(now.setFullYear(now.getFullYear() - 5)); break;
-      }
-      if (cutoff) {
-        ref = ref.where('createdAt', '>=', firebase.firestore.Timestamp.fromDate(cutoff));
+      // category filter
+      if(categoryFilter.value!=='all'){
+        ref = ref.where('type','==',categoryFilter.value);
       }
 
-      ref = ref.orderBy('createdAt', 'desc');
-      if (!auth.currentUser) ref = ref.limit(10);
+      // time filter
+      const nowMs = Date.now();
+      let cutoffMs;
+      switch(timeFilter.value){
+        case 'hour':    cutoffMs = nowMs - 1000*60*60; break;
+        case 'day':     cutoffMs = nowMs - 1000*60*60*24; break;
+        case 'week':    cutoffMs = nowMs - 1000*60*60*24*7; break;
+        case 'month':   cutoffMs = nowMs - 1000*60*60*24*30; break;
+        case 'year':    cutoffMs = nowMs - 1000*60*60*24*365; break;
+        case '5years':  cutoffMs = nowMs - 1000*60*60*24*365*5; break;
+      }
+      if(cutoffMs){
+        ref = ref.where(
+          'createdAt',
+          '>=',
+          firebase.firestore.Timestamp.fromMillis(cutoffMs)
+        );
+      }
+
+      ref = ref.orderBy('createdAt','desc');
+      if(!auth.currentUser) ref = ref.limit(10);
 
       ref.get()
-         .then(snap => {
-           if (snap.empty) {
-             feedEntries.innerHTML = '<p>No public entries.</p>';
+         .then(snap=>{
+           if(snap.empty){
+             feedEntries.innerHTML='<p>No public entries.</p>';
              return;
            }
-           snap.forEach(doc => {
-             const d = doc.data();
-             const loc = d.location || {};
-             const locText = loc.state ? ` (${loc.state}, ${loc.country})` : '';
-             const li = document.createElement('li');
-             li.textContent = `${d.type}: ${d.text}${locText}`;
+           snap.forEach(doc=>{
+             const d=doc.data();
+             const loc=d.location||{};
+             const locText = loc.state?` (${loc.state}, ${loc.country})`:'';
+             const li=document.createElement('li');
+             li.textContent=`${d.type}: ${d.text}${locText}`;
              feedEntries.append(li);
            });
          })
-         .catch(e => {
+         .catch(e=>{
            console.error(e);
-           feedEntries.innerHTML = '<p>Error loading public feed.</p>';
+           feedEntries.innerHTML='<p>Error loading public feed.</p>';
          });
     }
 
-    // ── Plot Public Markers + Clustering ──────
-    async function plotPublicMarkers() {
-      if (!leafletReady) return;
-
+    // ── Plot + Cluster Public Markers ────────
+    async function plotPublicMarkers(){
+      if(!leafletReady) return;
       markerGroup.clearLayers();
 
-      // same filtering logic:
       let ref = db.collection('publicEntries');
-      const cat = categoryFilter.value;
-      if (cat !== 'all') ref = ref.where('type', '==', cat);
-
-      let cutoff;
-      const now = new Date();
-      switch (timeFilter.value) {
-        case 'hour':   cutoff = new Date(now - 1000 * 60 * 60); break;
-        case 'day':    cutoff = new Date(now - 1000 * 60 * 60 * 24); break;
-        case 'week':   cutoff = new Date(now - 1000 * 60 * 60 * 24 * 7); break;
-        case 'month':  cutoff = new Date(now.setMonth(now.getMonth() - 1)); break;
-        case 'year':   cutoff = new Date(now.setFullYear(now.getFullYear() - 1)); break;
-        case '5years': cutoff = new Date(now.setFullYear(now.getFullYear() - 5)); break;
+      if(categoryFilter.value!=='all'){
+        ref = ref.where('type','==',categoryFilter.value);
       }
-      if (cutoff) {
-        ref = ref.where('createdAt', '>=', firebase.firestore.Timestamp.fromDate(cutoff));
+      const nowMs = Date.now();
+      let cutoffMs;
+      switch(timeFilter.value){
+        case 'hour':    cutoffMs = nowMs - 1000*60*60; break;
+        case 'day':     cutoffMs = nowMs - 1000*60*60*24; break;
+        case 'week':    cutoffMs = nowMs - 1000*60*60*24*7; break;
+        case 'month':   cutoffMs = nowMs - 1000*60*60*24*30; break;
+        case 'year':    cutoffMs = nowMs - 1000*60*60*24*365; break;
+        case '5years':  cutoffMs = nowMs - 1000*60*60*24*365*5; break;
+      }
+      if(cutoffMs){
+        ref = ref.where(
+          'createdAt',
+          '>=',
+          firebase.firestore.Timestamp.fromMillis(cutoffMs)
+        );
       }
 
       const snap = await ref.get();
-
-      await Promise.all(snap.docs.map(async docSnap => {
-        let d = docSnap.data();
-        let { lat, lon } = d;
-
-        if (lat == null || lon == null) {
+      await Promise.all(snap.docs.map(async ds=>{
+        let d = ds.data(), {lat,lon} = d;
+        if(lat==null||lon==null){
           const q   = encodeURIComponent(`${d.location.state}, ${d.location.country}`);
           const res = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
-          ).then(r => r.json());
-          if (res[0]) {
-            lat = +res[0].lat; lon = +res[0].lon;
-            await docSnap.ref.update({ lat, lon });
-          } else {
-            return;
-          }
+          ).then(r=>r.json());
+          if(res[0]){
+            lat=+res[0].lat; lon=+res[0].lon;
+            await ds.ref.update({lat,lon});
+          } else return;
         }
-
-        const m = L.marker([lat, lon]).bindPopup(
+        const m = L.marker([lat,lon]).bindPopup(
           `<strong>${d.type}</strong>: ${d.text}<br>` +
           `<em>${d.location.state}, ${d.location.country}</em>`
         );
@@ -410,7 +364,7 @@
       }));
 
       const bounds = markerGroup.getBounds();
-      if (bounds.isValid()) map.fitBounds(bounds.pad(0.5));
+      if(bounds.isValid()) map.fitBounds(bounds.pad(0.5));
     }
   </script>
 </body>
