@@ -9,8 +9,10 @@
   <link rel="stylesheet" href="style.css" />
 
   <!-- Leaflet CSS & JS -->
-  <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+  />
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
   <!-- Firebase SDKs -->
@@ -22,8 +24,9 @@
   <header class="card"><h1>Vision Journal</h1></header>
 
   <div class="layout">
-    <!-- MAIN -->
+    <!-- MAIN COLUMN -->
     <main id="main-content">
+      <!-- Login / Signup -->
       <div id="login-screen" class="card">
         <h2>Sign Up or Log In</h2>
         <input type="email" id="email" placeholder="you@example.com" />
@@ -33,7 +36,9 @@
         <p id="login-msg"></p>
       </div>
 
+      <!-- Journal + Map -->
       <div id="journal-screen" class="hidden">
+        <!-- Map Insights -->
         <div id="insights-box" class="card">
           <h2>Insights</h2>
           <div id="map"></div>
@@ -42,6 +47,7 @@
           </p>
         </div>
 
+        <!-- New Entry Form -->
         <div id="new-entry-box" class="card">
           <h2>New Entry</h2>
           <select id="type">
@@ -59,18 +65,15 @@
             (no location yet)
           </p>
           <div id="manual-location" class="hidden">
-            <input type="text"
-                   id="country-input"
-                   placeholder="Country (required)" />
-            <input type="text"
-                   id="state-input"
-                   placeholder="State/Region (required)" />
+            <input type="text" id="country-input" placeholder="Country (required)" />
+            <input type="text" id="state-input"   placeholder="State/Region (required)" />
           </div>
 
           <button id="save-entry">Save</button>
           <p id="entry-msg"></p>
         </div>
 
+        <!-- User’s Journal -->
         <div id="journal-box" class="card">
           <h2>My Journal</h2>
           <ul id="entries"></ul>
@@ -78,7 +81,7 @@
       </div>
     </main>
 
-    <!-- SIDEBAR -->
+    <!-- RIGHT SIDEBAR -->
     <aside id="feed-screen">
       <div id="logout-box" class="card hidden">
         <button id="logout">Logout</button>
@@ -94,9 +97,9 @@
     // ── Firebase Init ─────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyD3cdFU4K-LiPtkbVcQMmNp1701dvOEFW8",
-	  authDomain: "vision-journal-proto.firebaseapp.com",
+      authDomain: "vision-journal-proto.firebaseapp.com",
       projectId: "vision-journal-proto",
-      storageBucket: "vision-journal-proto.firebasestorage.app",
+      storageBucket: "vision-journal-proto.appspot.com",
       messagingSenderId: "1063775796504",
       appId: "1:1063775796504:web:8effe01d8a1272afc9326d"
     };
@@ -130,7 +133,7 @@
         attribution:'&copy; OpenStreetMap'
       }).addTo(map);
       leafletReady = true;
-    } catch(e){ console.warn(e) }
+    } catch(e){ console.warn('Leaflet init failed:', e) }
 
     // ── Auth ───────────────────────────────────
     signupBtn.onclick = () =>
@@ -190,7 +193,7 @@
         return;
       }
 
-      // Common payload
+      // build payload
       let payload = {
         userId: auth.currentUser.uid,
         type, text, tags, isPublic,
@@ -199,29 +202,31 @@
       };
 
       try {
-        // 1) Save private
+        // save to user's journal
         await db.collection('visions')
           .doc(auth.currentUser.uid)
           .collection('entries')
           .add(payload);
 
-        // 2) If public, geocode then duplicate
+        // if public: geocode & duplicate
         if (isPublic) {
-          // call Nominatim
           const q = encodeURIComponent(`${state}, ${country}`);
           const res = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`
           ).then(r=>r.json());
+
           if (res && res[0]) {
             payload.lat = parseFloat(res[0].lat);
             payload.lon = parseFloat(res[0].lon);
           }
-          // write to flat publicEntries
+
           await db.collection('publicEntries').add(payload);
         }
 
         document.getElementById('entry-msg').textContent = 'Saved!';
-        loadJournal(); loadPublicFeed(); plotPublicMarkers();
+        loadJournal();
+        loadPublicFeed();
+        plotPublicMarkers();
       } catch(e) {
         console.error(e);
         document.getElementById('entry-msg').textContent = 'Save failed.';
@@ -237,9 +242,9 @@
         .orderBy('createdAt','desc')
         .get()
         .then(snap => snap.forEach(doc=>{
-          const d=doc.data();
-          const li=document.createElement('li');
-          li.textContent=`${d.type}: ${d.text}`;
+          const d = doc.data();
+          const li = document.createElement('li');
+          li.textContent = `${d.type}: ${d.text}`;
           entriesList.append(li);
         }))
         .catch(console.error);
@@ -247,44 +252,45 @@
 
     // ── Load Public Feed ───────────────────────
     function loadPublicFeed(){
-      feedEntries.innerHTML='';
+      feedEntries.innerHTML = '';
       let ref = db.collection('publicEntries')
                   .orderBy('createdAt','desc');
-      if (!auth.currentUser) ref=ref.limit(10);
+      if (!auth.currentUser) ref = ref.limit(10);
+
       ref.get()
-         .then(snap=>{
-           if(snap.empty){
-             feedEntries.innerHTML='<p>No public entries.</p>';
+         .then(snap => {
+           if (snap.empty) {
+             feedEntries.innerHTML = '<p>No public entries.</p>';
              return;
            }
-           snap.forEach(doc=>{
-             const d=doc.data();
-             const loc=d.location||{};
-             const locText=loc.state?` (${loc.state}, ${loc.country})`:'';
-             const li=document.createElement('li');
-             li.textContent=`${d.type}: ${d.text}${locText}`;
+           snap.forEach(doc => {
+             const d = doc.data();
+             const loc = d.location || {};
+             const locText = loc.state ? ` (${loc.state}, ${loc.country})` : '';
+             const li = document.createElement('li');
+             li.textContent = `${d.type}: ${d.text}${locText}`;
              feedEntries.append(li);
            });
          })
-         .catch(e=>{
+         .catch(e => {
            console.error(e);
-           feedEntries.innerHTML='<p>Error loading public feed.</p>';
+           feedEntries.innerHTML = '<p>Error loading public feed.</p>';
          });
     }
 
     // ── Plot Public Markers ────────────────────
     function plotPublicMarkers(){
-      if(!leafletReady) return;
-      map.eachLayer(l=>{ if(l instanceof L.Marker) map.removeLayer(l) });
+      if (!leafletReady) return;
+      map.eachLayer(l => { if (l instanceof L.Marker) map.removeLayer(l) });
       db.collection('publicEntries')
         .where('lat','!=',null)
         .get()
-        .then(snap=>snap.forEach(doc=>{
-          const d=doc.data();
-          L.marker([d.lat,d.lon])
+        .then(snap => snap.forEach(doc => {
+          const d = doc.data();
+          L.marker([d.lat, d.lon])
            .addTo(map)
            .bindPopup(
-             `<strong>${d.type}</strong>: ${d.text}<br>`+
+             `<strong>${d.type}</strong>: ${d.text}<br>` +
              `<em>${d.location.state}, ${d.location.country}</em>`
            );
         }))
