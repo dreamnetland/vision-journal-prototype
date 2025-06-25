@@ -1,177 +1,148 @@
 /* Basic reset */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing:border-box; margin:0; padding:0; }
 
 /* Body & fonts */
 body {
-  font-family: Arial, sans-serif;
-  background: #f5f5f5;
-  color: #333;
-  line-height: 1.4;
+  font-family:Arial,sans-serif;
+  background:#f5f5f5;
+  color:#333;
+  line-height:1.4;
 }
 
-/* Top header */
-header.card {
-  background: #222;
-  color: #fff;
-  text-align: center;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 0.5rem;
+/* Header */
+.site-header {
+  background:#222;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:1rem;
+  margin-bottom:1rem;
+  border-radius:0.5rem;
+}
+.site-title { font-size:1.5rem; }
+.header-profile-btn {
+  background:none;
+  border:none;
+  display:flex;
+  align-items:center;
+  cursor:pointer;
+}
+.header-avatar {
+  width:24px; height:24px;
+  border-radius:50%;
+}
+.header-username {
+  margin-left:0.5rem;
+  color:#fff;
+  font-size:0.8rem;
 }
 
-/* ─── New: header flex layout ───────────────────────────────── */
-.header-flex {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* ─── New: profile widget in header ───────────────────────────── */
-.header-profile {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.header-profile img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.header-profile .small-btn {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
-}
-
-/* Layout columns */
+/* Layout */
 .layout {
-  display: flex;
-  gap: 1rem;
-  padding: 0 1rem 1rem;
+  display:flex; gap:1rem;
+  padding:0 1rem 1rem;
 }
-
-/* Main content takes remaining space */
-#main-content {
-  flex: 1;
+#login-screen, #journal-screen, #profile-screen {
+  flex:1;
 }
-
-/* Sidebar fixed width */
 #feed-screen {
-  flex: 0 0 300px;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  max-height: calc(100vh - 120px);
-  overflow-y: auto;
+  flex:0 0 300px;
+  display:flex;
+  flex-direction:column;
+  gap:1rem;
+  max-height:calc(100vh-120px);
+  overflow-y:auto;
 }
 
-/* ─── New: move logout/profile box above feed ───────────────────── */
-#feed-screen #logout-box {
-  order: -1;
-}
-
-/* Card styling */
+/* Cards */
 .card {
-  background: #fff;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  padding: 1rem;
+  background:#fff;
+  border-radius:0.5rem;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  padding:1rem;
 }
+.hidden { display:none; }
 
-/* Hide elements when .hidden */
-.hidden {
-  display: none;
-}
-
-/* Form elements */
-input[type="email"],
-input[type="password"],
-input[type="text"],
-select,
-textarea {
-  width: 100%;
-  padding: 0.5rem;
-  margin-top: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 0.25rem;
-  font-size: 1rem;
+/* Form controls */
+input, select, textarea {
+  width:100%;
+  padding:0.5rem;
+  margin-top:0.5rem;
+  border:1px solid #ccc;
+  border-radius:0.25rem;
+  font-size:1rem;
 }
 
 /* Buttons */
 button {
-  width: 100%;
-  padding: 0.75rem;
-  margin-top: 0.5rem;
-  border: none;
-  border-radius: 0.25rem;
-  background: #0066cc;
-  color: #fff;
-  font-size: 1rem;
-  cursor: pointer;
+  width:100%;
+  padding:0.75rem;
+  margin-top:0.5rem;
+  border:none;
+  border-radius:0.25rem;
+  background:#0066cc;
+  color:#fff;
+  font-size:1rem;
+  cursor:pointer;
 }
-button:hover {
-  background: #005bb5;
-}
-
-/* ─── Small-button variant ─────────────────────────────────────── */
-.small-btn {
-  width: auto;
-  padding: 0.25rem 0.5rem;
-  margin: 0;
-  font-size: 0.8rem;
-}
+button:hover { background:#005bb5; }
 
 /* Lists */
-ul {
-  list-style: none;
-  padding: 0;
-}
+ul { list-style:none; padding:0; }
 li {
-  background: #eef;
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
+  background:#eef;
+  margin:0.5rem 0;
+  padding:0.5rem;
+  border-radius:0.25rem;
 }
 
-/* Map container */
+/* Map */
 #map {
-  border: 2px solid red;
-  width: 100%;
-  height: 300px;
-  border-radius: 0.25rem;
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
+  border:2px solid red;
+  width:100%;
+  height:300px;
+  border-radius:0.25rem;
+  margin:0.5rem 0 1rem;
+}
+.map-hint {
+  text-align:center;
+  font-size:.9rem;
+  color:#666;
 }
 
-/* Specific card tweaks */
-#insights-box {
-  position: relative;
+/* Filters */
+.filters {
+  display:flex; gap:.5rem;
+  margin-bottom:.5rem;
+}
+.filters select {
+  flex:1;
+  padding:.4rem;
+  font-size:.9rem;
+  border:1px solid #ccc;
+  border-radius:.25rem;
 }
 
-/* Scrollbar styling for sidebar (optional) */
+/* Sidebar profile */
+.sidebar-profile {
+  text-align:center;
+}
+.sidebar-avatar {
+  width:32px; height:32px;
+  border-radius:50%;
+}
+.sidebar-username {
+  margin-top:.5rem;
+  font-weight:bold;
+  font-size:.9rem;
+}
+
+/* Scrollbar */
 #feed-screen::-webkit-scrollbar {
-  width: 8px;
+  width:8px;
 }
 #feed-screen::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.2);
-  border-radius: 4px;
-}
-
-/* ─── Filter dropdowns ───────────────────────────────────── */
-.filters {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.filters select {
-  flex: 1;
-  padding: 0.4rem;
-  font-size: 0.9rem;
-  border: 1px solid #ccc;
-  border-radius: 0.25rem;
+  background:rgba(0,0,0,0.2);
+  border-radius:4px;
 }
