@@ -9,23 +9,26 @@ body {
   line-height:1.4;
 }
 
-/* Header */
+/* HEADER */
 .site-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
   background:#222;
   color:#fff;
+  padding:1rem;
+  border-radius:0.5rem;
+  margin-bottom:1rem;
+}
+.site-title {
+  font-size:1.5rem;
+  margin:0;
+}
+.header-profile-btn {
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  padding:1rem;
-  margin-bottom:1rem;
-  border-radius:0.5rem;
-}
-.site-title { font-size:1.5rem; }
-.header-profile-btn {
   background:none;
   border:none;
-  display:flex;
-  align-items:center;
   cursor:pointer;
 }
 .header-avatar {
@@ -35,7 +38,7 @@ body {
 .header-username {
   margin-left:0.5rem;
   color:#fff;
-  font-size:0.8rem;
+  font-size:0.9rem;
 }
 
 /* Layout */
@@ -51,7 +54,7 @@ body {
   display:flex;
   flex-direction:column;
   gap:1rem;
-  max-height:calc(100vh-120px);
+  max-height:calc(100vh - 120px);
   overflow-y:auto;
 }
 
@@ -61,10 +64,11 @@ body {
   border-radius:0.5rem;
   box-shadow:0 2px 6px rgba(0,0,0,0.1);
   padding:1rem;
+  margin-bottom:1rem;
 }
 .hidden { display:none; }
 
-/* Form controls */
+/* FORM CONTROLS */
 input, select, textarea {
   width:100%;
   padding:0.5rem;
@@ -74,7 +78,7 @@ input, select, textarea {
   font-size:1rem;
 }
 
-/* Buttons */
+/* BUTTONS */
 button {
   width:100%;
   padding:0.75rem;
@@ -88,7 +92,7 @@ button {
 }
 button:hover { background:#005bb5; }
 
-/* Lists */
+/* LISTS */
 ul { list-style:none; padding:0; }
 li {
   background:#eef;
@@ -97,13 +101,13 @@ li {
   border-radius:0.25rem;
 }
 
-/* Map */
+/* MAP */
 #map {
   border:2px solid red;
   width:100%;
   height:300px;
   border-radius:0.25rem;
-  margin:0.5rem 0 1rem;
+  margin:0.5rem 0;
 }
 .map-hint {
   text-align:center;
@@ -111,7 +115,7 @@ li {
   color:#666;
 }
 
-/* Filters */
+/* FILTERS */
 .filters {
   display:flex; gap:.5rem;
   margin-bottom:.5rem;
@@ -124,7 +128,7 @@ li {
   border-radius:.25rem;
 }
 
-/* Sidebar profile */
+/* SIDEBAR PROFILE */
 .sidebar-profile {
   text-align:center;
 }
@@ -135,13 +139,11 @@ li {
 .sidebar-username {
   margin-top:.5rem;
   font-weight:bold;
-  font-size:.9rem;
+  font-size:0.9rem;
 }
 
-/* Scrollbar */
-#feed-screen::-webkit-scrollbar {
-  width:8px;
-}
+/* SCROLLBAR */
+#feed-screen::-webkit-scrollbar { width:8px; }
 #feed-screen::-webkit-scrollbar-thumb {
   background:rgba(0,0,0,0.2);
   border-radius:4px;

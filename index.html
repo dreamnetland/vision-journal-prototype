@@ -32,7 +32,7 @@
 </head>
 <body>
   <!-- HEADER -->
-  <header class="card site-header">
+  <header class="site-header">
     <h1 class="site-title">Vision Journal</h1>
     <button id="profile-button" class="header-profile-btn hidden">
       <img id="profile-pic" src="default-avatar.png" alt="Profile" class="header-avatar" />
@@ -41,7 +41,7 @@
   </header>
 
   <div class="layout">
-    <!-- LOGIN -->
+    <!-- LOGIN SCREEN -->
     <main id="login-screen" class="card">
       <h2>Sign Up or Log In</h2>
       <input type="email" id="email" placeholder="you@example.com" />
@@ -51,7 +51,7 @@
       <p id="login-msg"></p>
     </main>
 
-    <!-- PROFILE EDIT -->
+    <!-- PROFILE EDIT SCREEN -->
     <main id="profile-screen" class="card hidden">
       <h2>Your Profile</h2>
       <label>Display Name<br />
@@ -67,7 +67,7 @@
       <p id="profile-msg"></p>
     </main>
 
-    <!-- JOURNAL -->
+    <!-- JOURNAL SCREEN -->
     <main id="journal-screen" class="hidden">
       <div id="insights-box" class="card">
         <h2>Insights</h2>
@@ -102,9 +102,7 @@
         </select>
         <textarea id="text" placeholder="Describe…"></textarea>
         <input id="tags" placeholder="tags, comma-separated" />
-        <label>
-          <input type="checkbox" id="isPublic" /> Make Public
-        </label>
+        <label><input type="checkbox" id="isPublic" /> Make Public</label>
 
         <button id="detect-location">Detect My Country/State</button>
         <p id="location-display">(no location yet)</p>
@@ -251,7 +249,6 @@
       sbName.textContent = display;
       nameInput.value = d.displayName||'';
       hobbiesInput.value = (d.hobbies||[]).join(', ');
-      // TODO: handle loading actual avatar if stored
     }
 
     // ── Location Detection ───────────────────────
@@ -352,7 +349,6 @@
            }
            snap.forEach(doc=>{
              const d=doc.data();
-             // time & type filter logic here using filterType & filterTime…
              const loc=d.location||{};
              const locText=loc.state?` (${loc.state}, ${loc.country})`:'';
              const li=document.createElement('li');
