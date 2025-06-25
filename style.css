@@ -1,150 +1,140 @@
 /* Basic reset */
-* { box-sizing:border-box; margin:0; padding:0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 /* Body & fonts */
 body {
-  font-family:Arial,sans-serif;
-  background:#f5f5f5;
-  color:#333;
-  line-height:1.4;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+  line-height: 1.4;
 }
 
-/* HEADER */
-.site-header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:#222;
-  color:#fff;
-  padding:1rem;
-  border-radius:0.5rem;
-  margin-bottom:1rem;
-}
-.site-title {
-  font-size:1.5rem;
-  margin:0;
-}
-.header-profile-btn {
-  display:flex;
-  align-items:center;
-  background:none;
-  border:none;
-  cursor:pointer;
-}
-.header-avatar {
-  width:24px; height:24px;
-  border-radius:50%;
-}
-.header-username {
-  margin-left:0.5rem;
-  color:#fff;
-  font-size:0.9rem;
+/* Top header */
+header.card {
+  background: #222;
+  color: #fff;
+  text-align: center;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
 }
 
-/* Layout */
+/* Layout columns */
 .layout {
-  display:flex; gap:1rem;
-  padding:0 1rem 1rem;
+  display: flex;
+  gap: 1rem;
+  padding: 0 1rem 1rem;
 }
-#login-screen, #journal-screen, #profile-screen {
-  flex:1;
+
+/* Main content takes remaining space */
+#main-content {
+  flex: 1;
 }
+
+/* Sidebar fixed width */
 #feed-screen {
-  flex:0 0 300px;
-  display:flex;
-  flex-direction:column;
-  gap:1rem;
-  max-height:calc(100vh - 120px);
-  overflow-y:auto;
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
 }
 
-/* Cards */
+/* Card styling */
 .card {
-  background:#fff;
-  border-radius:0.5rem;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
-  padding:1rem;
-  margin-bottom:1rem;
-}
-.hidden { display:none; }
-
-/* FORM CONTROLS */
-input, select, textarea {
-  width:100%;
-  padding:0.5rem;
-  margin-top:0.5rem;
-  border:1px solid #ccc;
-  border-radius:0.25rem;
-  font-size:1rem;
+  background: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 1rem;
 }
 
-/* BUTTONS */
+/* Hide elements when .hidden */
+.hidden {
+  display: none;
+}
+
+/* Form elements */
+input[type="email"],
+input[type="password"],
+input[type="text"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+}
+
+/* Buttons */
 button {
-  width:100%;
-  padding:0.75rem;
-  margin-top:0.5rem;
-  border:none;
-  border-radius:0.25rem;
-  background:#0066cc;
-  color:#fff;
-  font-size:1rem;
-  cursor:pointer;
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 0.25rem;
+  background: #0066cc;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
 }
-button:hover { background:#005bb5; }
+button:hover {
+  background: #005bb5;
+}
 
-/* LISTS */
-ul { list-style:none; padding:0; }
+/* Lists */
+ul {
+  list-style: none;
+  padding: 0;
+}
 li {
-  background:#eef;
-  margin:0.5rem 0;
-  padding:0.5rem;
-  border-radius:0.25rem;
+  background: #eef;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
 }
 
-/* MAP */
+/* Map container */
 #map {
-  border:2px solid red;
-  width:100%;
-  height:300px;
-  border-radius:0.25rem;
-  margin:0.5rem 0;
-}
-.map-hint {
-  text-align:center;
-  font-size:.9rem;
-  color:#666;
+  border: 2px solid red;
+  width: 100%;
+  height: 300px;
+  border-radius: 0.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-/* FILTERS */
-.filters {
-  display:flex; gap:.5rem;
-  margin-bottom:.5rem;
-}
-.filters select {
-  flex:1;
-  padding:.4rem;
-  font-size:.9rem;
-  border:1px solid #ccc;
-  border-radius:.25rem;
+/* Specific card tweaks */
+#insights-box {
+  position: relative;
 }
 
-/* SIDEBAR PROFILE */
-.sidebar-profile {
-  text-align:center;
+/* Scrollbar styling for sidebar (optional) */
+#feed-screen::-webkit-scrollbar {
+  width: 8px;
 }
-.sidebar-avatar {
-  width:32px; height:32px;
-  border-radius:50%;
-}
-.sidebar-username {
-  margin-top:.5rem;
-  font-weight:bold;
-  font-size:0.9rem;
-}
-
-/* SCROLLBAR */
-#feed-screen::-webkit-scrollbar { width:8px; }
 #feed-screen::-webkit-scrollbar-thumb {
-  background:rgba(0,0,0,0.2);
-  border-radius:4px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+
+/* ─── Filter dropdowns ───────────────────── */
+.filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.filters select {
+  flex: 1;
+  padding: 0.4rem;
+  font-size: 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
 }

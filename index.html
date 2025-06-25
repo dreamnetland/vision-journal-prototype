@@ -8,7 +8,7 @@
   <!-- your CSS -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Leaflet & MarkerCluster -->
+  <!-- Leaflet & MarkerCluster CSS/JS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
@@ -30,14 +30,16 @@
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+  <!-- Top Header -->
   <header class="card">
     <h1>Vision Journal</h1>
   </header>
 
+  <!-- Main two-column layout -->
   <div class="layout">
     <!-- LEFT COLUMN -->
     <main id="main-content">
-      <!-- Login Form -->
+      <!-- Login Screen -->
       <div id="login-screen" class="card">
         <h2>Sign Up or Log In</h2>
         <input type="email" id="email" placeholder="you@example.com" />
@@ -47,9 +49,9 @@
         <p id="login-msg"></p>
       </div>
 
-      <!-- Journal & Insights -->
+      <!-- Journal + Insights -->
       <div id="journal-screen" class="hidden">
-        <!-- Insights (Map + Filters) -->
+        <!-- Insights Box -->
         <div id="insights-box" class="card">
           <h2>Insights</h2>
           <div class="filters">
@@ -75,7 +77,7 @@
           </p>
         </div>
 
-        <!-- New Entry -->
+        <!-- New Entry Box -->
         <div id="new-entry-box" class="card">
           <h2>New Entry</h2>
           <select id="type">
@@ -101,7 +103,7 @@
           <p id="entry-msg"></p>
         </div>
 
-        <!-- My Journal -->
+        <!-- My Journal Box -->
         <div id="journal-box" class="card">
           <h2>My Journal</h2>
           <ul id="entries"></ul>
@@ -121,8 +123,9 @@
     </aside>
   </div>
 
+  <!-- App Logic -->
   <script>
-    // ─── Firebase Setup ─────────────────────────────────────
+    // ── Firebase Init ─────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyD3cdFU4K-LiPtkbVcQMmNp1701dvOEFW8",
       authDomain: "vision-journal-proto.firebaseapp.com",
@@ -132,52 +135,47 @@
       appId: "1:1063775796504:web:8effe01d8a1272afc9326d"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db   = firebase.firestore();
+    const auth = firebase.auth(), db = firebase.firestore();
 
-    // ─── UI References ──────────────────────────────────────
-    const loginScreen    = document.getElementById('login-screen');
-    const journalScreen  = document.getElementById('journal-screen');
-    const logoutBox      = document.getElementById('logout-box');
-    const loginMsg       = document.getElementById('login-msg');
-    const emailInput     = document.getElementById('email');
-    const passwordInput  = document.getElementById('password');
-    const signupBtn      = document.getElementById('signup');
-    const loginBtn       = document.getElementById('login');
-    const logoutBtn      = document.getElementById('logout');
-    const saveBtn        = document.getElementById('save-entry');
-    const detectBtn      = document.getElementById('detect-location');
-    const locationDisp   = document.getElementById('location-display');
-    const manualDiv      = document.getElementById('manual-location');
-    const countryInput   = document.getElementById('country-input');
-    const stateInput     = document.getElementById('state-input');
-    const entriesList    = document.getElementById('entries');
-    const feedEntries    = document.getElementById('feed-entries');
-    const filterType     = document.getElementById('filter-type');
-    const filterTime     = document.getElementById('filter-time');
+    // ── UI References ─────────────────────────────
+    const loginScreen  = document.getElementById('login-screen');
+    const journalScreen= document.getElementById('journal-screen');
+    const logoutBox    = document.getElementById('logout-box');
+    const loginMsg     = document.getElementById('login-msg');
+    const emailInput   = document.getElementById('email');
+    const passwordInput= document.getElementById('password');
+    const signupBtn    = document.getElementById('signup');
+    const loginBtn     = document.getElementById('login');
+    const logoutBtn    = document.getElementById('logout');
+    const saveBtn      = document.getElementById('save-entry');
+    const detectBtn    = document.getElementById('detect-location');
+    const locationDisp = document.getElementById('location-display');
+    const manualDiv    = document.getElementById('manual-location');
+    const countryInput = document.getElementById('country-input');
+    const stateInput   = document.getElementById('state-input');
+    const entriesList  = document.getElementById('entries');
+    const feedEntries  = document.getElementById('feed-entries');
+    const filterType   = document.getElementById('filter-type');
+    const filterTime   = document.getElementById('filter-time');
 
-    // ─── Leaflet Map + Clustering ──────────────────────────
-    let map, markers, leafletReady = false;
+    // ── Leaflet + Clustering ────────────────────────
+    let map, markers, leafletReady=false;
     try {
       map = L.map('map').setView([20,0],2);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(map);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OSM'}).addTo(map);
       markers = L.markerClusterGroup();
       map.addLayer(markers);
-      leafletReady = true;
-    } catch(e) {
-      console.warn('Leaflet init failed:', e);
-    }
+      leafletReady=true;
+    } catch(e){ console.warn(e) }
 
-    // ─── Auth Handlers ─────────────────────────────────────
+    // ── Auth Handlers ────────────────────────────────
     signupBtn.onclick = () =>
-      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-          .catch(e => loginMsg.textContent = e.message);
+      auth.createUserWithEmailAndPassword(emailInput.value,passwordInput.value)
+          .catch(e=>loginMsg.textContent=e.message);
 
     loginBtn.onclick = () =>
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-          .catch(e => loginMsg.textContent = e.message);
+      auth.signInWithEmailAndPassword(emailInput.value,passwordInput.value)
+          .catch(e=>loginMsg.textContent=e.message);
 
     logoutBtn.onclick = () => auth.signOut();
 
@@ -186,7 +184,7 @@
         loginScreen.classList.add('hidden');
         journalScreen.classList.remove('hidden');
         logoutBox.classList.remove('hidden');
-        if (leafletReady) setTimeout(() => map.invalidateSize(), 200);
+        if (leafletReady) setTimeout(()=>map.invalidateSize(),200);
         loadJournal();
       } else {
         loginScreen.classList.remove('hidden');
@@ -197,139 +195,124 @@
       if (leafletReady) plotPublicMarkers();
     });
 
-    // ─── Location Detection ─────────────────────────────────
+    // ── Location Detection ────────────────────────────
     detectBtn.onclick = () => {
-      locationDisp.textContent = 'Detecting…';
+      locationDisp.textContent='Detecting…';
       fetch('https://ipapi.co/json/')
-        .then(r => r.json())
-        .then(data => {
-          if (data.country_name && data.region) {
-            locationDisp.textContent = `${data.region}, ${data.country_name}`;
-            countryInput.value = data.country_name;
-            stateInput.value   = data.region;
+        .then(r=>r.json())
+        .then(d=>{
+          if(d.country_name&&d.region){
+            locationDisp.textContent=`${d.region}, ${d.country_name}`;
+            countryInput.value=d.country_name;
+            stateInput.value=d.region;
             manualDiv.classList.add('hidden');
-          } else throw new Error('Incomplete');
-        })
-        .catch(_ => {
-          locationDisp.textContent = 'Auto-detect failed; enter manually';
+          } else throw '';
+        }).catch(_=>{
+          locationDisp.textContent='Auto-detect failed; enter manually';
           manualDiv.classList.remove('hidden');
         });
     };
 
-    // ─── Save Entry ─────────────────────────────────────────
+    // ── Save Entry ─────────────────────────────────────
     saveBtn.onclick = () => {
-      const type     = document.getElementById('type').value;
-      const text     = document.getElementById('text').value;
-      const tags     = document.getElementById('tags').value
-                        .split(',').map(s=>s.trim()).filter(Boolean);
+      const type = document.getElementById('type').value;
+      const text = document.getElementById('text').value;
+      const tags = document.getElementById('tags').value
+                     .split(',').map(s=>s.trim()).filter(Boolean);
       const isPublic = document.getElementById('isPublic').checked;
-      const country  = countryInput.value.trim();
-      const state    = stateInput.value.trim();
-      if (!country || !state) {
-        alert('Please detect or enter country & state.');
-        return;
-      }
+      const country = countryInput.value.trim();
+      const state   = stateInput.value.trim();
+      if(!country||!state){ alert('Please enter country & state.'); return; }
 
       const payload = {
-        userId: auth.currentUser.uid,
+        userId    : auth.currentUser.uid,
         type, text, tags, isPublic,
-        location: { country, state },
-        lat: null, lon: null,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        location  : {country,state},
+        lat       : null,
+        lon       : null,
+        createdAt : firebase.firestore.FieldValue.serverTimestamp()
       };
 
+      // save to user journal
       db.collection('visions').doc(auth.currentUser.uid)
         .collection('entries').add(payload)
-        .then(() => {
-          if (isPublic) {
-            db.collection('publicEntries').add(payload);
-          }
-          document.getElementById('entry-msg').textContent = 'Saved!';
+        .then(()=>{
+          // if public also write to flat collection
+          if(isPublic) db.collection('publicEntries').add(payload);
+          document.getElementById('entry-msg').textContent='Saved!';
           loadJournal();
           loadPublicFeed();
           plotPublicMarkers();
-        })
-        .catch(() => {
-          document.getElementById('entry-msg').textContent = 'Save failed.';
+        }).catch(()=>{
+          document.getElementById('entry-msg').textContent='Save failed.';
         });
     };
 
-    // ─── Load Personal Journal ─────────────────────────────
-    function loadJournal() {
-      entriesList.innerHTML = '';
+    // ── Load Personal Journal ──────────────────────────
+    function loadJournal(){
+      entriesList.innerHTML='';
       db.collection('visions').doc(auth.currentUser.uid)
         .collection('entries').orderBy('createdAt','desc').get()
-        .then(snap => {
-          snap.forEach(doc => {
-            const d = doc.data();
-            const li = document.createElement('li');
-            li.textContent = `${d.type}: ${d.text}`;
-            entriesList.append(li);
-          });
-        });
+        .then(snap=>snap.forEach(doc=>{
+          const d=doc.data();
+          const li=document.createElement('li');
+          li.textContent=`${d.type}: ${d.text}`;
+          entriesList.append(li);
+        }));
     }
 
-    // ─── Load Public Feed ───────────────────────────────────
-    function loadPublicFeed() {
-      feedEntries.innerHTML = '';
-      let q = db.collection('publicEntries')
-                .orderBy('createdAt','desc');
-      if (!auth.currentUser) q = q.limit(10);
+    // ── Load Public Feed ───────────────────────────────
+    function loadPublicFeed(){
+      feedEntries.innerHTML='';
+      let q = db.collection('publicEntries').orderBy('createdAt','desc');
+      if(!auth.currentUser) q=q.limit(10);
 
-      // apply type filter
-      const t = filterType.value;
-      if (t !== 'all') q = q.where('type','==',t);
+      // type filter
+      if(filterType.value!=='all') q=q.where('type','==',filterType.value);
 
-      // apply time filter
-      const now = Date.now();
-      const tf = filterTime.value;
+      // time filter
+      const now=Date.now(), tf=filterTime.value;
       let cutoff;
-      if (tf === 'hour') cutoff = now - 3600e3;
-      if (tf === 'day')  cutoff = now - 86400e3;
-      if (tf === 'week') cutoff = now - 7*86400e3;
-      if (tf === 'month')cutoff= now - 30*86400e3;
-      if (tf === 'year') cutoff= now - 365*86400e3;
-      if (cutoff) q = q.where('createdAt','>=', firebase.firestore.Timestamp.fromMillis(cutoff));
+      if(tf==='hour')  cutoff=now-3600e3;
+      if(tf==='day')   cutoff=now-86400e3;
+      if(tf==='week')  cutoff=now-7*86400e3;
+      if(tf==='month') cutoff=now-30*86400e3;
+      if(tf==='year')  cutoff=now-365*86400e3;
+      if(cutoff) q=q.where('createdAt','>=',firebase.firestore.Timestamp.fromMillis(cutoff));
 
-      q.get()
-       .then(snap => {
-         if (snap.empty) {
-           feedEntries.innerHTML = '<p>No public entries.</p>';
-           return;
-         }
-         snap.forEach(doc => {
-           const d = doc.data();
-           const loc = d.location || {};
-           const locText = loc.state ? ` (${loc.state}, ${loc.country})` : '';
-           const li = document.createElement('li');
-           li.textContent = `${d.type}: ${d.text}${locText}`;
-           feedEntries.append(li);
-         });
-       })
-       .catch(console.error);
+      q.get().then(snap=>{
+        if(snap.empty){
+          feedEntries.innerHTML='<p>No public entries.</p>';
+          return;
+        }
+        snap.forEach(doc=>{
+          const d=doc.data();
+          const loc=d.location||{};
+          const locText = loc.state ? ` (${loc.state}, ${loc.country})` : '';
+          const li=document.createElement('li');
+          li.textContent=`${d.type}: ${d.text}${locText}`;
+          feedEntries.append(li);
+        });
+      }).catch(console.error);
     }
 
-    // ─── Plot Public Markers ────────────────────────────────
-    function plotPublicMarkers() {
-      if (!leafletReady) return;
+    // ── Plot Public Markers ─────────────────────────────
+    function plotPublicMarkers(){
+      if(!leafletReady) return;
       markers.clearLayers();
-
-      db.collection('publicEntries')
-        .get()
-        .then(snap => {
-          snap.forEach(doc => {
-            const d = doc.data();
-            if (d.lat == null || d.lon == null) return;
-            const m = L.marker([d.lat, d.lon])
-              .bindPopup(`<strong>${d.type}</strong>: ${d.text}<br><em>${d.location.state}, ${d.location.country}</em>`);
-            markers.addLayer(m);
-          });
-        })
-        .catch(console.error);
+      db.collection('publicEntries').get().then(snap=>{
+        snap.forEach(doc=>{
+          const d=doc.data();
+          if(d.lat==null||d.lon==null) return;
+          const m = L.marker([d.lat,d.lon])
+            .bindPopup(`<strong>${d.type}</strong>: ${d.text}<br><em>${d.location.state}, ${d.location.country}</em>`);
+          markers.addLayer(m);
+        });
+      }).catch(console.error);
     }
 
-    // re-load feed & markers when filters change
-    filterType.onchange = filterTime.onchange = () => {
+    // re‐apply when filters change
+    filterType.onchange = filterTime.onchange = ()=>{
       loadPublicFeed();
       plotPublicMarkers();
     };
